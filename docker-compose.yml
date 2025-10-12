@@ -1,4 +1,3 @@
-
 services:
   gateway_service:
     build: ./gateway_service
@@ -10,14 +9,15 @@ services:
     depends_on:
       - orchestrator_service
       - task_service
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   orchestrator_service:
     build: ./orchestrator_service
     ports:
       - "8001:8001"
-    environment:
-      - HUGGINGFACE_API=HUGGINGFACE_API=https://api-inference.huggingface.co/models/microsoft/CodeGPT-350M-py
-      - HF_TOKEN=${HF_TOKEN}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   task_service:
     build: ./task_service
