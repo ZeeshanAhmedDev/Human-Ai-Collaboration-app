@@ -1,3 +1,36 @@
+# services:
+#   gateway_service:
+#     build: ./gateway_service
+#     ports:
+#       - "8000:8000"
+#     environment:
+#       - ORCH_URL=http://orchestrator_service:8001/run
+#       - TASK_URL=http://task_service:8002/task
+#     depends_on:
+#       - orchestrator_service
+#       - task_service
+#     extra_hosts:
+#       - "host.docker.internal:host-gateway"
+
+#   orchestrator_service:
+#     build: ./orchestrator_service
+#     ports:
+#       - "8001:8001"
+#     extra_hosts:
+#       - "host.docker.internal:host-gateway"
+
+#   task_service:
+#     build: ./task_service
+#     ports:
+#       - "8002:8002"
+#     environment:
+#       - MONGO_URI=${MONGO_URI}
+#       - DB_NAME=ai_collab_team
+
+
+
+
+
 services:
   gateway_service:
     build: ./gateway_service
@@ -9,15 +42,25 @@ services:
     depends_on:
       - orchestrator_service
       - task_service
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   orchestrator_service:
     build: ./orchestrator_service
     ports:
       - "8001:8001"
+    environment:
+      - OLLAMA_HOST=http://host.docker.internal:11434
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   task_service:
     build: ./task_service
@@ -26,3 +69,8 @@ services:
     environment:
       - MONGO_URI=${MONGO_URI}
       - DB_NAME=ai_collab_team
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

@@ -5,6 +5,7 @@ class OllamaClient:
         # self.base_url = "http://localhost:11434/api/generate"
         self.base_url = "http://host.docker.internal:11434/api/generate"
         self.model = "qwen3-coder:480b-cloud"  # Your chosen model
+        # self.model = "deepseek-v3.1:671b-cloud"  # Your chosen model
     
     def query_ai(self, prompt: str):
         """

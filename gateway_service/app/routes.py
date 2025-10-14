@@ -1,58 +1,6 @@
-# from fastapi import APIRouter, HTTPException
-# import requests
-# import os
-# from dotenv import load_dotenv
-
-# # Load environment variables from .env if present
-# load_dotenv()
-
-# router = APIRouter(prefix="/api")
-
-# # Detect environment (local or docker)
-# ENV_MODE = os.getenv("ENV_MODE", "local").lower()
-
-# # Determine service URLs dynamically
-# if ENV_MODE == "docker":
-#     ORCH_URL = "http://orchestrator_service:8001/run"
-#     TASK_URL = "http://task_service:8002/task"
-# else:
-#     ORCH_URL = "http://127.0.0.1:8001/run"
-#     TASK_URL = "http://127.0.0.1:8002/task"
-
-# @router.post("/execute")
-# def execute_goal(payload: dict):
-#     """
-#     Main endpoint: sends user goal to orchestrator → gets AI plan →
-#     stores result in task service → returns output to frontend.
-#     """
-#     goal = payload.get("goal")
-#     if not goal:
-#         raise HTTPException(status_code=400, detail="Missing 'goal' in request payload")
-
-#     try:
-#         # Step 1: Send to Orchestrator service
-#         orch_response = requests.post(ORCH_URL, json={"goal": goal}, timeout=60)
-#         orch_response.raise_for_status()
-#         ai_output = orch_response.json()
-
-#         # Step 2: Send result to Task service
-#         task_response = requests.post(TASK_URL, json={"goal": goal, "output": ai_output}, timeout=30)
-#         task_response.raise_for_status()
-
-#         # Step 3: Return combined response
-#         return {
-#             "goal": goal,
-#             "ai_output": ai_output,
-#             "task_saved": task_response.status_code == 200
-#         }
-
-#     except requests.exceptions.RequestException as e:
-#         raise HTTPException(status_code=500, detail=f"Service call failed: {e}")
-
 
 # from fastapi import APIRouter, HTTPException
-# import requests
-# import os
+# import requests, os
 # from dotenv import load_dotenv
 
 # load_dotenv()
@@ -65,9 +13,7 @@
 # def execute_goal(payload: dict):
 #     goal = payload.get("goal")
 #     try:
-#         # Step 1: Send to AI orchestrator
 #         ai_output = requests.post(ORCH_URL, json={"goal": goal}, timeout=120).json()
-#         # Step 2: Save to DB
 #         requests.post(TASK_URL, json={"goal": goal, "output": ai_output})
 #         return ai_output
 #     except Exception as e:
@@ -76,22 +22,52 @@
 
 
 
+
 from fastapi import APIRouter, HTTPException
-import requests, os
+import requests, os, time
 from dotenv import load_dotenv
 
 load_dotenv()
+
 router = APIRouter(prefix="/api", tags=["Gateway"])
 
-ORCH_URL = os.getenv("ORCH_URL", "http://127.0.0.1:8001/run")
-TASK_URL = os.getenv("TASK_URL", "http://127.0.0.1:8002/task")
+# Use Docker service names
+ORCH_URL = os.getenv("ORCH_URL", "http://orchestrator_service:8001/run")
+TASK_URL = os.getenv("TASK_URL", "http://task_service:8002/task")
 
 @router.post("/execute")
 def execute_goal(payload: dict):
     goal = payload.get("goal")
     try:
-        ai_output = requests.post(ORCH_URL, json={"goal": goal}, timeout=120).json()
-        requests.post(TASK_URL, json={"goal": goal, "output": ai_output})
+        print(f"🚀 Gateway: Sending goal to orchestrator: {goal}")
+        
+        # Increase timeout and add better error handling
+        ai_output = requests.post(ORCH_URL, json={"goal": goal}, timeout=300).json()
+        
+        print(f"✅ Gateway: Received AI output, saving to task service")
+        requests.post(TASK_URL, json={"goal": goal, "output": ai_output}, timeout=30)
+        
         return ai_output
+    except requests.exceptions.ConnectionError as e:
+        raise HTTPException(status_code=503, detail=f"Cannot connect to orchestrator service: {e}")
+    except requests.exceptions.Timeout as e:
+        raise HTTPException(status_code=504, detail=f"Orchestrator service timeout: {e}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Service call failed: {e}")
+
+@router.get("/health")
+def gateway_health():
+    """Health check that tests all service connections"""
+    try:
+        # Test orchestrator connection
+        orch_response = requests.get(ORCH_URL.replace("/run", "/health"), timeout=10)
+        # Test task service connection  
+        task_response = requests.get(TASK_URL.replace("/task", "/health"), timeout=10)
+        
+        return {
+            "status": "healthy",
+            "orchestrator": orch_response.json() if orch_response.status_code == 200 else "unhealthy",
+            "task_service": task_response.json() if task_response.status_code == 200 else "unhealthy"
+        }
+    except Exception as e:
+        return {"status": "unhealthy", "error": str(e)}
