@@ -1,0 +1,258 @@
+/* Chat Interface with Persistent Sidebar Toggle */
+.chat-interface {
+  display: flex;
+  height: 100vh;
+  background: white;
+  position: relative;
+}
+
+/* Sidebar Container */
+.sidebar-container {
+  position: relative;
+  z-index: 1000;
+  transition: transform 0.3s ease;
+}
+
+/* Main Chat Area */
+.main-chat-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: white;
+  transition: margin-left 0.3s ease;
+}
+
+/* Chat Header */
+.chat-header {
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  color: white;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  position: relative;
+  z-index: 100;
+}
+
+/* Sidebar Toggle Button - Always Visible */
+.sidebar-toggle {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: auto;
+  white-space: nowrap;
+}
+
+.sidebar-toggle:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-icon {
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+.toggle-text {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.header-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 0 1rem;
+}
+
+.header-content h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.conversation-title {
+  font-size: 1rem;
+  opacity: 0.9;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.connection-status {
+  font-size: 0.9rem;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.5rem 0.75rem;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.status-connected { color: #10b981; }
+.status-disconnected { color: #ef4444; }
+
+.chat-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+  background: #f8fafc;
+}
+
+/* Sidebar Overlay for Mobile */
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  display: none;
+}
+
+/* Desktop Styles (min-width: 769px) */
+@media (min-width: 769px) {
+  .sidebar-container {
+    width: 300px;
+    flex-shrink: 0;
+  }
+  
+  .sidebar-container.open {
+    transform: translateX(0);
+  }
+  
+  .sidebar-container.closed {
+    width: 0;
+    overflow: hidden;
+  }
+  
+  .main-chat-area {
+    margin-left: 0;
+  }
+  
+  .sidebar-overlay {
+    display: none !important;
+  }
+
+  /* Show full toggle text on desktop */
+  .toggle-text {
+    display: inline;
+  }
+}
+
+/* Mobile Styles (max-width: 768px) */
+@media (max-width: 768px) {
+  .sidebar-container {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 300px;
+    z-index: 1000;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+  
+  .sidebar-container.open {
+    transform: translateX(0);
+  }
+  
+  .sidebar-container.closed {
+    transform: translateX(-100%);
+  }
+  
+  .sidebar-overlay {
+    display: block;
+  }
+
+  .sidebar-toggle {
+    padding: 0.5rem;
+    min-width: 44px; /* Touch-friendly size */
+  }
+
+  /* Hide toggle text on mobile, show only icon */
+  .toggle-text {
+    display: none;
+  }
+
+  .header-content {
+    margin: 0 0.5rem;
+  }
+
+  .header-content h1 {
+    font-size: 1.2rem;
+  }
+
+  .conversation-title {
+    font-size: 0.9rem;
+    max-width: 150px;
+  }
+
+  .chat-header {
+    padding: 0.75rem 1rem;
+  }
+
+  .chat-container {
+    padding: 1rem;
+  }
+
+  .connection-status {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.6rem;
+  }
+}
+
+/* Small Mobile Styles (max-width: 480px) */
+@media (max-width: 480px) {
+  .header-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+    margin: 0 0.25rem;
+  }
+
+  .conversation-title {
+    font-size: 0.85rem;
+    max-width: 120px;
+  }
+
+  .connection-status {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    font-size: 0.7rem;
+    padding: 0.3rem 0.5rem;
+  }
+
+  .sidebar-toggle {
+    padding: 0.4rem;
+    min-width: 40px;
+  }
+}
+
+/* Animation for toggle button */
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.sidebar-toggle:active {
+  animation: pulse 0.2s ease;
+}

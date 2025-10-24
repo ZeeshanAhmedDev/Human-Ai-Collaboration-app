@@ -1,36 +1,3 @@
-# services:
-#   gateway_service:
-#     build: ./gateway_service
-#     ports:
-#       - "8000:8000"
-#     environment:
-#       - ORCH_URL=http://orchestrator_service:8001/run
-#       - TASK_URL=http://task_service:8002/task
-#     depends_on:
-#       - orchestrator_service
-#       - task_service
-#     extra_hosts:
-#       - "host.docker.internal:host-gateway"
-
-#   orchestrator_service:
-#     build: ./orchestrator_service
-#     ports:
-#       - "8001:8001"
-#     extra_hosts:
-#       - "host.docker.internal:host-gateway"
-
-#   task_service:
-#     build: ./task_service
-#     ports:
-#       - "8002:8002"
-#     environment:
-#       - MONGO_URI=${MONGO_URI}
-#       - DB_NAME=ai_collab_team
-
-
-
-
-
 services:
   gateway_service:
     build: ./gateway_service
