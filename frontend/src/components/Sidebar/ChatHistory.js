@@ -1,35 +1,45 @@
 import React from 'react';
+import { MessageSquareText, Trash2 } from 'lucide-react';
 
-const ChatHistory = ({ 
-  conversations, 
-  activeConversation, 
-  onSelectConversation, 
-  onDeleteConversation 
+const formatDate = (timestamp) => {
+  const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) return 'Recent';
+
+  const today = new Date();
+  const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const startOfDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const diffDays = Math.round((startOfToday - startOfDate) / 86400000);
+
+  if (diffDays === 0) return 'Today';
+  if (diffDays === 1) return 'Yesterday';
+  if (diffDays < 7) return `${diffDays} days ago`;
+
+  return date.toLocaleDateString([], {
+    month: 'short',
+    day: 'numeric'
+  });
+};
+
+const truncateText = (text, maxLength = 58) => {
+  const value = String(text || '');
+  if (value.length <= maxLength) return value;
+  return `${value.substring(0, maxLength).trim()}...`;
+};
+
+const ChatHistory = ({
+  conversations,
+  activeConversation,
+  onSelectConversation,
+  onDeleteConversation
 }) => {
-  const formatDate = (timestamp) => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffTime = Math.abs(now - date);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays === 1) return 'Today';
-    if (diffDays === 2) return 'Yesterday';
-    if (diffDays <= 7) return `${diffDays - 1} days ago`;
-    
-    return date.toLocaleDateString();
-  };
-
-  const truncateText = (text, maxLength = 50) => {
-    if (text.length <= maxLength) return text;
-    return text.substring(0, maxLength) + '...';
-  };
-
   if (conversations.length === 0) {
     return (
       <div className="empty-history">
-        <div className="empty-icon">💬</div>
-        <p>No chat history</p>
-        <span>Start a new conversation</span>
+        <div className="empty-history-icon">
+          <MessageSquareText size={24} strokeWidth={1.8} />
+        </div>
+        <p>No saved sessions</p>
+        <span>Start a collaboration to see it here.</span>
       </div>
     );
   }
@@ -37,48 +47,47 @@ const ChatHistory = ({
   return (
     <div className="chat-history">
       <div className="history-header">
-        <h3>Chat History</h3>
+        <div>
+          <p className="eyebrow">Workspace</p>
+          <h2>Conversations</h2>
+        </div>
         <span className="conversation-count">{conversations.length}</span>
       </div>
-      
+
       <div className="conversation-list">
-        {conversations.map((conversation) => (
-          <div
-            key={conversation.id}
-            className={`conversation-item ${
-              activeConversation?.id === conversation.id ? 'active' : ''
-            }`}
-            onClick={() => onSelectConversation(conversation)}
-          >
-            <div className="conversation-content">
-              <div className="conversation-title">
-                {conversation.title || 'New Conversation'}
-              </div>
-              <div className="conversation-preview">
-                {truncateText(conversation.lastMessage || 'Start chatting...')}
-              </div>
-              <div className="conversation-meta">
-                <span className="conversation-date">
-                  {formatDate(conversation.timestamp)}
+        {conversations.map((conversation) => {
+          const isActive = activeConversation?.id === conversation.id;
+
+          return (
+            <div className={`conversation-row ${isActive ? 'active' : ''}`} key={conversation.id}>
+              <button
+                className="conversation-main"
+                type="button"
+                onClick={() => onSelectConversation(conversation)}
+                aria-current={isActive ? 'true' : undefined}
+              >
+                <span className="conversation-title">{conversation.title || 'New collaboration'}</span>
+                <span className="conversation-preview">
+                  {truncateText(conversation.lastMessage || 'No messages yet')}
                 </span>
-                <span className="message-count">
-                  {conversation.messageCount || 0} messages
+                <span className="conversation-meta">
+                  <span>{formatDate(conversation.timestamp)}</span>
+                  <span>{conversation.messageCount || 0} messages</span>
                 </span>
-              </div>
+              </button>
+
+              <button
+                className="delete-conversation"
+                type="button"
+                onClick={() => onDeleteConversation(conversation.id)}
+                aria-label={`Delete ${conversation.title || 'conversation'}`}
+                title="Delete conversation"
+              >
+                <Trash2 size={15} strokeWidth={2} />
+              </button>
             </div>
-            
-            <button
-              className="delete-conversation"
-              onClick={(e) => {
-                e.stopPropagation();
-                onDeleteConversation(conversation.id);
-              }}
-              title="Delete conversation"
-            >
-              🗑️
-            </button>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

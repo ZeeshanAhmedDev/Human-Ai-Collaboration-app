@@ -1,3 +1,49 @@
+# services:
+#   gateway_service:
+#     build: ./gateway_service
+#     ports:
+#       - "8000:8000"
+#     environment:
+#       - ORCH_URL=http://orchestrator_service:8001/run
+#       - TASK_URL=http://task_service:8002/task
+#     depends_on:
+#       - orchestrator_service
+#       - task_service
+#     healthcheck:
+#       test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+#       interval: 30s
+#       timeout: 10s
+#       retries: 3
+
+#   orchestrator_service:
+#     build: ./orchestrator_service
+#     ports:
+#       - "8001:8001"
+#     environment:
+#       - OLLAMA_HOST=http://host.docker.internal:11434
+#     extra_hosts:
+#       - "host.docker.internal:host-gateway"
+#     healthcheck:
+#       test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+#       interval: 30s
+#       timeout: 10s
+#       retries: 3
+
+#   task_service:
+#     build: ./task_service
+#     ports:
+#       - "8002:8002"
+#     environment:
+#       - MONGO_URI=${MONGO_URI}
+#       - DB_NAME=ai_collab_team
+#     healthcheck:
+#       test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+#       interval: 30s
+#       timeout: 10s
+#       retries: 3
+
+
+
 services:
   gateway_service:
     build: ./gateway_service
@@ -6,11 +52,13 @@ services:
     environment:
       - ORCH_URL=http://orchestrator_service:8001/run
       - TASK_URL=http://task_service:8002/task
+      - ORCH_TIMEOUT=900
+      - TASK_TIMEOUT=8
     depends_on:
       - orchestrator_service
       - task_service
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health', timeout=5).read()"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -20,11 +68,12 @@ services:
     ports:
       - "8001:8001"
     environment:
-      - OLLAMA_HOST=http://host.docker.internal:11434
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - OLLAMA_API_KEY=${OLLAMA_API_KEY}
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-qwen3-coder:480b}
+      - OLLAMA_TIMEOUT=180
+      - OLLAMA_NUM_PREDICT=900
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/health', timeout=5).read()"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -37,7 +86,7 @@ services:
       - MONGO_URI=${MONGO_URI}
       - DB_NAME=ai_collab_team
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8002/health', timeout=5).read()"]
       interval: 30s
       timeout: 10s
       retries: 3

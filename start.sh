@@ -52,6 +52,13 @@ fi
 
 print_status "Docker is available and running ✓"
 
+if [ -f ".env" ]; then
+    print_status "Loading environment variables from .env..."
+    set -a
+    source .env
+    set +a
+fi
+
 # Start dependencies (MongoDB and Ollama)
 print_status "Starting dependencies (MongoDB & Ollama)..."
 docker-compose -f docker-compose.dependencies.yml up -d

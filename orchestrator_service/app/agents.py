@@ -1,139 +1,69 @@
 from app.hf_client import query_ai
 
+
 def planner(goal: str):
     prompt = f"""
-    As a software architect, create a comprehensive development plan for:
+    You are the planner agent in a human-AI software collaboration platform.
 
-    PROJECT: {goal}
+    PROJECT GOAL:
+    {goal}
 
-    Provide a detailed technical specification including:
+    Create a concise implementation plan with:
+    - 4 to 6 functional requirements
+    - Backend API endpoints
+    - Frontend component structure
+    - Database collections or tables
+    - Main development steps
 
-    BACKEND ARCHITECTURE:
-    - FastAPI endpoints and their purposes
-    - Database schema design (MongoDB)
-    - Authentication and authorization flow
-    - API request/response models
-
-    FRONTEND STRUCTURE:
-    - React components hierarchy
-    - State management approach
-    - API integration strategy
-    - UI/UX considerations
-
-    DEVELOPMENT ROADMAP:
-    - Phase 1: Core setup and basic functionality
-    - Phase 2: Feature implementation
-    - Phase 3: Testing and optimization
-    - Phase 4: Deployment preparation
-
-    Be specific and provide actionable technical details.
+    Keep the answer practical and under 700 words.
     """
     return query_ai(prompt)
+
 
 def developer(task: str):
     prompt = f"""
-    As a senior full-stack developer, write complete, production-ready code for:
+    You are the developer agent in a human-AI software collaboration platform.
 
-    TASK: {task}
+    TASK:
+    {task}
 
-    TECHNICAL REQUIREMENTS:
-    - Backend: Python with FastAPI
-    - Frontend: React with modern hooks
-    - Database: MongoDB with PyMongo
-    - Authentication: JWT tokens
-    - Validation: Pydantic models
-    - Error handling: Comprehensive try-catch blocks
+    Provide a compact, working implementation outline using FastAPI, React,
+    and MongoDB where relevant. Include the most important code snippets and
+    file names, but avoid unnecessary boilerplate.
 
-    CODE QUALITY STANDARDS:
-    - Follow PEP 8 and React best practices
-    - Include proper documentation comments
-    - Implement input validation and sanitization
-    - Use environment variables for configuration
-    - Write modular, reusable code
-
-    OUTPUT FORMAT:
-    Provide the complete implementation with:
-    1. All necessary imports and dependencies
-    2. Full function/component implementations
-    3. Database models and schemas
-    4. API route definitions
-    5. Example usage if applicable
-
-    Write the complete, working code:
+    Keep the answer under 900 words.
     """
     return query_ai(prompt)
+
 
 def tester(code: str):
     prompt = f"""
-    As a QA engineer, write comprehensive test suites for:
+    You are the tester agent.
 
-    CODE TO TEST:
+    CODE OR IMPLEMENTATION TO TEST:
     {code}
 
-    TESTING REQUIREMENTS:
-    - Use pytest for Python backend testing
-    - Use Jest/React Testing Library for frontend testing
-    - Cover all functions, endpoints, and components
-    - Include unit tests, integration tests, and edge cases
-    - Mock external dependencies (database, APIs)
-    - Test both success and failure scenarios
+    Create a focused test plan and representative pytest/Jest test snippets.
+    Cover success cases, failure cases, and one integration flow.
 
-    Provide complete test code with:
-    - Test fixtures and setup/teardown procedures
-    - Mock implementations for external services
-    - Comprehensive assertions for expected behavior
-    - Error case testing and validation
-
-    Write the complete test suite:
+    Keep the answer under 600 words.
     """
     return query_ai(prompt)
 
+
 def reviewer(code: str):
     prompt = f"""
-    As a senior code reviewer, conduct a thorough technical review:
+    You are the reviewer agent.
 
-    CODE TO REVIEW:
+    CODE OR IMPLEMENTATION TO REVIEW:
     {code}
 
-    REVIEW CRITERIA:
+    Provide a concise code review with:
+    - Critical issues
+    - Security or validation risks
+    - Performance risks
+    - Concrete improvements
 
-    🔍 CODE QUALITY ANALYSIS:
-    - Code readability and maintainability
-    - Proper code organization and structure
-    - Consistent naming conventions
-    - Code duplication and DRY principles
-
-    ⚡ PERFORMANCE CONSIDERATIONS:
-    - Database query efficiency
-    - Algorithm complexity and optimization
-    - Memory usage patterns
-    - Potential performance bottlenecks
-
-    🛡️ SECURITY ASSESSMENT:
-    - Input validation and sanitization
-    - Authentication and authorization checks
-    - Data protection and privacy
-    - API security best practices
-    - Error information disclosure
-
-    🐛 BUGS & ROBUSTNESS:
-    - Edge case handling completeness
-    - Error recovery mechanisms
-    - Race conditions and concurrency issues
-    - Resource management and cleanup
-
-    📚 BEST PRACTICES EVALUATION:
-    - REST API conventions compliance
-    - Python/React idioms and patterns
-    - MongoDB usage best practices
-    - Error handling strategies
-
-    Provide specific, actionable feedback with:
-    - Critical issues that must be addressed immediately
-    - Important improvements recommended for production
-    - Optimization suggestions for better performance
-    - Code examples demonstrating the fixes
-
-    Review feedback:
+    Keep the answer under 600 words.
     """
     return query_ai(prompt)

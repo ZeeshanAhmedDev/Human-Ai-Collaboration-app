@@ -1,76 +1,96 @@
 import React, { useState } from 'react';
+import { CornerDownLeft, Eraser, Loader2, SendHorizontal } from 'lucide-react';
+
+const presetGoals = [
+  'Build a chatbot with FastAPI and React',
+  'Create a REST API for a blog system',
+  'Develop a task management app',
+  'Build a weather dashboard with API integration'
+];
 
 const InputArea = ({ onSendMessage, isProcessing, onClearChat }) => {
   const [inputValue, setInputValue] = useState('');
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (inputValue.trim() && !isProcessing) {
-      onSendMessage(inputValue);
-      setInputValue('');
-    }
+  const submitMessage = (value = inputValue) => {
+    const trimmedValue = value.trim();
+    if (!trimmedValue || isProcessing) return;
+
+    onSendMessage(trimmedValue);
+    setInputValue('');
   };
 
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSubmit(e);
-    }
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    submitMessage();
   };
 
-  const presetGoals = [
-    "Build a chatbot with FastAPI and React",
-    "Create a REST API for a blog system",
-    "Develop a task management app",
-    "Build a weather application with API integration"
-  ];
+  const handleKeyDown = (event) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      submitMessage();
+    }
+  };
 
   return (
-    <div className="input-area">
-      <div className="preset-goals">
-        <p>Quick Start:</p>
-        {presetGoals.map((goal, index) => (
+    <footer className="composer">
+      <div className="preset-row" aria-label="Quick project goals">
+        {presetGoals.map((goal) => (
           <button
-            key={index}
+            key={goal}
             className="preset-goal"
-            onClick={() => onSendMessage(goal)}
+            type="button"
+            onClick={() => submitMessage(goal)}
             disabled={isProcessing}
+            title={goal}
           >
             {goal}
           </button>
         ))}
       </div>
 
-      <form onSubmit={handleSubmit} className="message-form">
-        <div className="input-container">
-          <textarea
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Describe your software project... (e.g., Build a calculator API with FastAPI)"
-            disabled={isProcessing}
-            rows="3"
-          />
-          <div className="button-group">
-            <button 
-              type="button" 
-              className="clear-button"
-              onClick={onClearChat}
-              disabled={isProcessing}
-            >
-              🗑️ Clear
-            </button>
-            <button 
-              type="submit" 
-              disabled={!inputValue.trim() || isProcessing}
-              className="send-button"
-            >
-              {isProcessing ? '⚡ Processing...' : '🚀 Send to AI Team'}
-            </button>
+      <form className="composer-form" onSubmit={handleSubmit}>
+        <label className="sr-only" htmlFor="project-goal">
+          Project goal
+        </label>
+        <textarea
+          id="project-goal"
+          value={inputValue}
+          onChange={(event) => setInputValue(event.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Describe the project you want the AI team to build..."
+          disabled={isProcessing}
+          rows="2"
+        />
+
+        <div className="composer-actions">
+          <div className="submit-hint">
+            <CornerDownLeft size={14} strokeWidth={2} />
+            <span>Enter to send</span>
           </div>
+          <button
+            className="secondary-button"
+            type="button"
+            onClick={onClearChat}
+            disabled={isProcessing}
+          >
+            <Eraser size={16} strokeWidth={2} />
+            Clear
+          </button>
+          <button
+            className="primary-button"
+            type="submit"
+            disabled={!inputValue.trim() || isProcessing}
+          >
+            {isProcessing ? (
+              <Loader2 className="spin" size={16} strokeWidth={2.2} />
+            ) : (
+              <SendHorizontal size={16} strokeWidth={2.2} />
+            )}
+            {isProcessing ? 'Running' : 'Send'}
+          </button>
         </div>
       </form>
-    </div>
+    </footer>
   );
 };
 

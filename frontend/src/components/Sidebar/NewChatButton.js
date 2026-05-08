@@ -1,10 +1,11 @@
 import React from 'react';
+import { Plus } from 'lucide-react';
 
 const NewChatButton = ({ onNewChat }) => {
   return (
-    <button className="new-chat-button" onClick={onNewChat}>
-      <span className="plus-icon">+</span>
-      <span className="button-text">New Chat</span>
+    <button className="new-chat-button" type="button" onClick={onNewChat}>
+      <Plus size={17} strokeWidth={2.2} />
+      <span>New collaboration</span>
     </button>
   );
 };

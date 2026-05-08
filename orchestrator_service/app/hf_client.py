@@ -1,69 +1,85 @@
-import requests, time
+import os
+import time
+
+import requests
+
+
+def _get_generate_url() -> str:
+    base_url = os.getenv("OLLAMA_BASE_URL") or os.getenv("OLLAMA_HOST")
+
+    if not base_url:
+        return "https://ollama.com/api/generate"
+
+    base_url = base_url.rstrip("/")
+    if base_url.endswith("/api/generate"):
+        return base_url
+
+    return f"{base_url}/api/generate"
+
 
 class OllamaClient:
     def __init__(self):
-        # self.base_url = "http://localhost:11434/api/generate"
-        self.base_url = "http://host.docker.internal:11434/api/generate"
-        self.model = "qwen3-coder:480b-cloud"  # Your chosen model
-        # self.model = "deepseek-v3.1:671b-cloud"  # Your chosen model
-    
+        self.base_url = _get_generate_url()
+        self.model = os.getenv("OLLAMA_MODEL", "qwen3-coder:480b")
+        self.api_key = os.getenv("OLLAMA_API_KEY")
+        self.timeout = int(os.getenv("OLLAMA_TIMEOUT", "180"))
+        self.num_predict = int(os.getenv("OLLAMA_NUM_PREDICT", "900"))
+        self.session = requests.Session()
+
     def query_ai(self, prompt: str):
-        """
-        Query the qwen3-coder model - specialized for coding tasks
-        """
+        if "ollama.com" in self.base_url and not self.api_key:
+            return "Error: OLLAMA_API_KEY is missing for Ollama Cloud."
+
         payload = {
             "model": self.model,
             "prompt": prompt,
             "stream": False,
             "options": {
-                "temperature": 0.7,
-                "num_predict": 2000  # Good balance for coding tasks
+                "temperature": 0.5,
+                "num_predict": self.num_predict
             }
         }
 
-        print(f"🚀 Calling {self.model}...")
-        print(f"📝 Prompt: {prompt[:150]}...")
-        
-        try:
-            response = requests.post(self.base_url, json=payload, timeout=120)
-            
-            if response.status_code == 200:
-                data = response.json()
-                response_text = data['response']
-                print(f"✅ Response received ({len(response_text)} characters)")
-                return response_text
-            else:
-                error_msg = f"Error {response.status_code}: {response.text}"
-                print(f"❌ {error_msg}")
-                return error_msg
-                
-        except requests.exceptions.ConnectionError:
-            return "Error: Cannot connect to Ollama. Please make sure Ollama is running on localhost:11434"
-        except requests.exceptions.Timeout:
-            return "Error: Request timeout - model is taking too long to respond"
-        except Exception as e:
-            return f"Error: {str(e)}"
+        headers = {"Content-Type": "application/json"}
+        if self.api_key:
+            headers["Authorization"] = f"Bearer {self.api_key}"
 
-# Global instance
+        started_at = time.perf_counter()
+
+        try:
+            response = self.session.post(
+                self.base_url,
+                json=payload,
+                headers=headers,
+                timeout=self.timeout
+            )
+            elapsed = time.perf_counter() - started_at
+
+            if response.status_code == 200:
+                result = response.json().get("response", "")
+                print(
+                    f"Ollama returned {len(result)} chars from {self.model} "
+                    f"in {elapsed:.1f}s"
+                )
+                return result
+
+            return f"Error {response.status_code}: {response.text}"
+
+        except requests.exceptions.Timeout:
+            return (
+                f"Error: AI model request timed out after {self.timeout}s. "
+                "Try a smaller model or lower OLLAMA_NUM_PREDICT."
+            )
+
+        except requests.exceptions.ConnectionError:
+            return f"Error: Cannot connect to AI model endpoint {self.base_url}."
+
+        except Exception as exc:
+            return f"Error: {str(exc)}"
+
+
 client = OllamaClient()
 
+
 def query_ai(prompt: str):
-    """Main function - uses only qwen3-coder"""
     return client.query_ai(prompt)
-
-def test_model():
-    """Test qwen3-coder with a coding task"""
-    test_prompt = "Write a Python FastAPI endpoint for user registration with email validation:"
-    print("🧪 Testing qwen3-coder...")
-    result = query_ai(test_prompt)
-    print(f"🧪 Test Result: {result}")
-    return result
-
-def get_model_info():
-    """Get information about the current model"""
-    return {
-        "current_model": "qwen3-coder:480b-cloud",
-        "specialization": "Coding and software development",
-        "size": "480B parameters (cloud)",
-        "capabilities": ["Code generation", "Code review", "Testing", "Architecture planning"]
-    }

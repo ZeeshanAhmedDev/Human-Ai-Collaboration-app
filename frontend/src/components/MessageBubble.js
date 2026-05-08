@@ -1,208 +1,135 @@
-// import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
+import {
+  Bot,
+  CheckCircle2,
+  CircleDashed,
+  Code2,
+  ClipboardList,
+  FileSearch,
+  FlaskConical,
+  MonitorDot,
+  UserRound
+} from 'lucide-react';
 
-// const MessageBubble = ({ message }) => {
-//   const [isExpanded, setIsExpanded] = useState(false);
+const agentMeta = {
+  planner: {
+    label: 'Planner',
+    role: 'Architecture plan',
+    icon: ClipboardList
+  },
+  developer: {
+    label: 'Developer',
+    role: 'Implementation',
+    icon: Code2
+  },
+  tester: {
+    label: 'Tester',
+    role: 'Test strategy',
+    icon: FlaskConical
+  },
+  reviewer: {
+    label: 'Reviewer',
+    role: 'Quality review',
+    icon: FileSearch
+  },
+  system: {
+    label: 'System',
+    role: 'Status update',
+    icon: MonitorDot
+  }
+};
 
-//   const getAgentIcon = (agent) => {
-//     const icons = {
-//       planner: '🎯',
-//       developer: '💻',
-//       tester: '🧪',
-//       reviewer: '🔍',
-//       system: '🤖'
-//     };
-//     return icons[agent] || '🤖';
-//   };
+const formatTime = (timestamp) => {
+  const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) return '';
 
-//   const getAgentName = (agent) => {
-//     const names = {
-//       planner: 'Architect',
-//       developer: 'Developer',
-//       tester: 'QA Engineer',
-//       reviewer: 'Code Reviewer',
-//       system: 'System'
-//     };
-//     return names[agent] || 'AI';
-//   };
+  return date.toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+};
 
-//   const formatContent = (content) => {
-//     if (content.includes('```')) {
-//       return content.split('```').map((part, index) => 
-//         index % 2 === 1 ? (
-//           <pre key={index} className="code-block">{part}</pre>
-//         ) : (
-//           <span key={index}>{part}</span>
-//         )
-//       );
-//     }
-//     return content;
-//   };
+const renderContent = (content) => {
+  const text = String(content || '');
+  const parts = text.split('```');
 
-//   const shouldTruncate = message.content.length > 500 && message.type === 'ai';
-//   const displayContent = shouldTruncate && !isExpanded 
-//     ? message.content.substring(0, 500) + '...' 
-//     : message.content;
+  if (parts.length === 1) {
+    return <p>{text}</p>;
+  }
 
-//   return (
-//     <div className={`message-bubble ${message.type} ${message.agent || ''}`}>
-//       <div className="message-header">
-//         <span className="agent-icon">{getAgentIcon(message.agent)}</span>
-//         <span className="agent-name">{getAgentName(message.agent)}</span>
-//         <span className="message-time">
-//           {new Date(message.timestamp).toLocaleTimeString()}
-//         </span>
-//       </div>
-      
-//       <div className="message-content">
-//         {formatContent(displayContent)}
-//       </div>
+  return parts.map((part, index) => {
+    if (index % 2 === 0) {
+      return part ? <p key={`text-${index}`}>{part}</p> : null;
+    }
 
-//       {shouldTruncate && (
-//         <button 
-//           className="expand-button"
-//           onClick={() => setIsExpanded(!isExpanded)}
-//         >
-//           {isExpanded ? 'Show Less' : 'Show More'}
-//         </button>
-//       )}
+    const [firstLine, ...rest] = part.replace(/^\n/, '').split('\n');
+    const hasLanguage = /^[a-z0-9+#.-]+$/i.test(firstLine.trim()) && rest.length > 0;
+    const code = hasLanguage ? rest.join('\n') : part.trim();
+    const language = hasLanguage ? firstLine.trim() : 'code';
 
-//       {message.status === 'pending' && (
-//         <div className="typing-indicator">
-//           <span></span>
-//           <span></span>
-//           <span></span>
-//         </div>
-//       )}
-//     </div>
-//   );
-// };
-
-// export default MessageBubble;
-
-
-import React, { useState, useEffect } from 'react';
+    return (
+      <div className="code-shell" key={`code-${index}`}>
+        <div className="code-label">{language}</div>
+        <pre className="code-block">{code}</pre>
+      </div>
+    );
+  });
+};
 
 const MessageBubble = ({ message }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [displayedContent, setDisplayedContent] = useState('');
+  const content = String(message.content || '');
+  const meta = agentMeta[message.agent] || agentMeta.system;
+  const isUser = message.type === 'user';
+  const Icon = isUser ? UserRound : meta.icon || Bot;
+  const statusIcon = message.isThinking ? CircleDashed : CheckCircle2;
+  const StatusIcon = statusIcon;
+  const shouldCollapse = content.length > 1800 && message.type === 'ai';
 
-  // Simulate typing effect for thinking messages
-  useEffect(() => {
-    if (message.isThinking && message.content) {
-      setDisplayedContent('');
-      let currentIndex = 0;
-      
-      const typingInterval = setInterval(() => {
-        if (currentIndex <= message.content.length) {
-          setDisplayedContent(message.content.substring(0, currentIndex));
-          currentIndex++;
-        } else {
-          clearInterval(typingInterval);
-        }
-      }, 20); // Typing speed
-      
-      return () => clearInterval(typingInterval);
-    } else {
-      setDisplayedContent(message.content);
-    }
-  }, [message.content, message.isThinking]);
-
-  const getAgentIcon = (agent) => {
-    const icons = {
-      planner: '🎯',
-      developer: '💻',
-      tester: '🧪',
-      reviewer: '🔍',
-      system: '🤖'
-    };
-    return icons[agent] || '🤖';
-  };
-
-  const getAgentName = (agent) => {
-    const names = {
-      planner: 'Architect',
-      developer: 'Developer',
-      tester: 'QA Engineer',
-      reviewer: 'Code Reviewer',
-      system: 'System'
-    };
-    return names[agent] || 'AI';
-  };
-
-  const getAgentStatus = (agent, isThinking) => {
-    if (isThinking) {
-      const status = {
-        planner: 'Planning architecture...',
-        developer: 'Writing code...',
-        tester: 'Creating tests...',
-        reviewer: 'Reviewing code...',
-        system: 'Processing...'
-      };
-      return status[agent] || 'Thinking...';
-    }
-    return 'Completed';
-  };
-
-  const formatContent = (content) => {
-    if (content.includes('```')) {
-      return content.split('```').map((part, index) => 
-        index % 2 === 1 ? (
-          <pre key={index} className="code-block">{part}</pre>
-        ) : (
-          <span key={index}>{part}</span>
-        )
-      );
-    }
-    return content;
-  };
-
-  const shouldTruncate = message.content.length > 500 && message.type === 'ai' && !message.isThinking;
-  const displayContent = shouldTruncate && !isExpanded 
-    ? displayedContent.substring(0, 500) + '...' 
-    : displayedContent;
+  const visibleContent = useMemo(() => {
+    if (!shouldCollapse || isExpanded) return content;
+    return `${content.slice(0, 1800).trim()}...`;
+  }, [content, isExpanded, shouldCollapse]);
 
   return (
-    <div className={`message-bubble ${message.type} ${message.agent || ''} ${message.isThinking ? 'thinking' : ''}`}>
-      <div className="message-header">
-        <span className="agent-icon">{getAgentIcon(message.agent)}</span>
-        <div className="agent-info">
-          <span className="agent-name">{getAgentName(message.agent)}</span>
-          {message.isThinking && (
-            <span className="agent-status">{getAgentStatus(message.agent, true)}</span>
-          )}
-        </div>
-        <span className="message-time">
-          {message.isThinking ? 'Just now' : new Date(message.timestamp).toLocaleTimeString()}
-        </span>
+    <article className={`message-bubble ${message.type} ${message.agent || 'general'}`}>
+      <div className="message-avatar" aria-hidden="true">
+        <Icon size={18} strokeWidth={2} />
       </div>
-      
-      <div className="message-content">
-        {formatContent(displayContent)}
-        {message.isThinking && displayedContent.length < message.content.length && (
-          <span className="typing-cursor">|</span>
+
+      <div className="message-card">
+        <header className="message-header">
+          <div>
+            <div className="message-author">{isUser ? 'You' : meta.label}</div>
+            <div className="message-role">{isUser ? 'Project request' : meta.role}</div>
+          </div>
+          <div className={`message-status ${message.isThinking ? 'working' : 'done'}`}>
+            <StatusIcon size={14} strokeWidth={2.2} />
+            <span>{message.isThinking ? 'Working' : formatTime(message.timestamp)}</span>
+          </div>
+        </header>
+
+        <div className="message-content">{renderContent(visibleContent)}</div>
+
+        {message.isThinking && (
+          <div className="thinking-bar" aria-label="Processing">
+            <span />
+            <span />
+            <span />
+          </div>
+        )}
+
+        {shouldCollapse && (
+          <button
+            className="text-button"
+            type="button"
+            onClick={() => setIsExpanded((value) => !value)}
+          >
+            {isExpanded ? 'Show less' : 'Show full response'}
+          </button>
         )}
       </div>
-
-      {message.isThinking && (
-        <div className="thinking-indicator">
-          <div className="thinking-dots">
-            <span></span>
-            <span></span>
-            <span></span>
-          </div>
-          <span className="thinking-text">AI is thinking...</span>
-        </div>
-      )}
-
-      {shouldTruncate && (
-        <button 
-          className="expand-button"
-          onClick={() => setIsExpanded(!isExpanded)}
-        >
-          {isExpanded ? 'Show Less' : 'Show More'}
-        </button>
-      )}
-    </div>
+    </article>
   );
 };
 

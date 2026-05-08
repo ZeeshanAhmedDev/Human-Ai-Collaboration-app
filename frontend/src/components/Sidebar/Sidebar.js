@@ -1,74 +1,42 @@
-// import React from 'react';
-// import ChatHistory from './ChatHistory.js';
-// import NewChatButton from './NewChatButton.js';
-// import '.././../styles/Sidebar.css';
-
-// const Sidebar = ({ 
-//   conversations, 
-//   activeConversation, 
-//   onSelectConversation, 
-//   onNewChat, 
-//   onDeleteConversation 
-// }) => {
-//   return (
-//     <div className="sidebar">
-//       <div className="sidebar-header">
-//         <NewChatButton onNewChat={onNewChat} />
-//       </div>
-      
-//       <div className="sidebar-content">
-//         <ChatHistory
-//           conversations={conversations}
-//           activeConversation={activeConversation}
-//           onSelectConversation={onSelectConversation}
-//           onDeleteConversation={onDeleteConversation}
-//         />
-//       </div>
-      
-//       <div className="sidebar-footer">
-//         <div className="user-info">
-//           <div className="user-avatar">👤</div>
-//           <span className="user-name">Developer</span>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default Sidebar;
-
-
-
-
 import React from 'react';
+import { Network, X } from 'lucide-react';
 import ChatHistory from './ChatHistory.js';
 import NewChatButton from './NewChatButton.js';
 import '.././../styles/Sidebar.css';
 
-const Sidebar = ({ 
-  conversations, 
-  activeConversation, 
-  onSelectConversation, 
-  onNewChat, 
+const Sidebar = ({
+  conversations,
+  activeConversation,
+  onSelectConversation,
+  onNewChat,
   onDeleteConversation,
-  onCloseSidebar 
+  onCloseSidebar
 }) => {
   return (
     <div className="sidebar">
       <div className="sidebar-header">
-        <div className="sidebar-header-top">
-          <NewChatButton onNewChat={onNewChat} />
-          {/* Close button for mobile */}
-          <button 
-            className="sidebar-close-btn"
+        <div className="brand-row">
+          <div className="brand-mark">
+            <Network size={20} strokeWidth={2} />
+          </div>
+          <div className="brand-copy">
+            <strong>AI Collab</strong>
+            <span>Thesis prototype</span>
+          </div>
+          <button
+            className="icon-button sidebar-close-btn"
+            type="button"
             onClick={onCloseSidebar}
             aria-label="Close sidebar"
+            title="Close sidebar"
           >
-            ✕
+            <X size={18} strokeWidth={2} />
           </button>
         </div>
+
+        <NewChatButton onNewChat={onNewChat} />
       </div>
-      
+
       <div className="sidebar-content">
         <ChatHistory
           conversations={conversations}
@@ -77,11 +45,14 @@ const Sidebar = ({
           onDeleteConversation={onDeleteConversation}
         />
       </div>
-      
+
       <div className="sidebar-footer">
-        <div className="user-info">
-          <div className="user-avatar">👤</div>
-          <span className="user-name">Developer</span>
+        <div className="profile-chip">
+          <span className="profile-avatar">D</span>
+          <div>
+            <strong>Developer</strong>
+            <span>Human collaborator</span>
+          </div>
         </div>
       </div>
     </div>
