@@ -48,6 +48,20 @@ class ApiService {
       throw new Error('Backend service unavailable');
     }
   }
+
+  async getKpis() {
+    try {
+      const response = await this.client.get('/kpis', { timeout: 15000 });
+      return response.data;
+    } catch (error) {
+      if (error.response) {
+        const detail = error.response.data?.detail || 'Unknown error';
+        throw new Error(`KPI Error: ${error.response.status} - ${detail}`);
+      }
+
+      throw new Error('Unable to load KPI data');
+    }
+  }
 }
 
 export default new ApiService();

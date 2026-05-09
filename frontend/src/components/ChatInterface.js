@@ -1,9 +1,18 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Activity, PanelLeftClose, PanelLeftOpen, Wifi, WifiOff } from 'lucide-react';
+import {
+  Activity,
+  BarChart3,
+  MessageSquareText,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Wifi,
+  WifiOff
+} from 'lucide-react';
 import Sidebar from './Sidebar/Sidebar.js';
 import MessageList from './MessageList.js';
 import InputArea from './InputArea.js';
 import AgentStatus from './AgentStatus.js';
+import KpiDashboard from './KpiDashboard.js';
 import ChatController from '../controllers/chatController.js';
 import apiService from '../services/apiService.js';
 import '../styles/ChatInterface.css';
@@ -19,6 +28,7 @@ const ChatInterface = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState('checking');
   const [sidebarOpen, setSidebarOpen] = useState(getDesktopSidebarState);
+  const [activeView, setActiveView] = useState('chat');
 
   const chatController = useRef(new ChatController());
   const messagesEndRef = useRef(null);
@@ -152,6 +162,25 @@ const ChatInterface = () => {
             <h1 title={activeTitle}>{activeTitle}</h1>
           </div>
 
+          <div className="view-switch" aria-label="Workspace view">
+            <button
+              className={activeView === 'chat' ? 'active' : ''}
+              type="button"
+              onClick={() => setActiveView('chat')}
+            >
+              <MessageSquareText size={15} strokeWidth={2} />
+              Chat
+            </button>
+            <button
+              className={activeView === 'kpis' ? 'active' : ''}
+              type="button"
+              onClick={() => setActiveView('kpis')}
+            >
+              <BarChart3 size={15} strokeWidth={2} />
+              KPIs
+            </button>
+          </div>
+
           <button
             className={`connection-pill ${connectionStatus}`}
             type="button"
@@ -163,18 +192,26 @@ const ChatInterface = () => {
           </button>
         </header>
 
-        <AgentStatus isProcessing={isProcessing} />
+        {activeView === 'chat' ? (
+          <>
+            <AgentStatus isProcessing={isProcessing} />
 
-        <section className="chat-scroll-area" aria-label="Conversation">
-          <MessageList messages={activeConversation?.messages || []} />
-          <div ref={messagesEndRef} />
-        </section>
+            <section className="chat-scroll-area" aria-label="Conversation">
+              <MessageList messages={activeConversation?.messages || []} />
+              <div ref={messagesEndRef} />
+            </section>
 
-        <InputArea
-          onSendMessage={handleSendMessage}
-          isProcessing={isProcessing}
-          onClearChat={handleClearChat}
-        />
+            <InputArea
+              onSendMessage={handleSendMessage}
+              isProcessing={isProcessing}
+              onClearChat={handleClearChat}
+            />
+          </>
+        ) : (
+          <section className="dashboard-scroll-area" aria-label="KPI dashboard">
+            <KpiDashboard />
+          </section>
+        )}
       </main>
     </div>
   );
