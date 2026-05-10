@@ -573,6 +573,10 @@
   background: #fffaf0;
 }
 
+.message-bubble.workflow .message-card {
+  border-left: 4px solid var(--indigo);
+}
+
 .message-header {
   display: flex;
   justify-content: space-between;
@@ -612,6 +616,125 @@
   overflow-wrap: anywhere;
 }
 
+.workflow-panel {
+  padding: 15px 16px 16px;
+}
+
+.workflow-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.workflow-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+  border-radius: 999px;
+  padding: 0 10px;
+  font-size: 0.78rem;
+  font-weight: 850;
+  text-transform: capitalize;
+}
+
+.workflow-pill.intent {
+  color: var(--teal);
+  background: var(--teal-soft);
+}
+
+.workflow-pill.status {
+  color: var(--amber);
+  background: var(--amber-soft);
+}
+
+.workflow-pill.status.completed,
+.workflow-pill.status.validated {
+  color: var(--success);
+  background: rgba(19, 138, 79, 0.1);
+}
+
+.workflow-pill.status.failed,
+.workflow-pill.status.rejected {
+  color: var(--danger);
+  background: rgba(194, 65, 59, 0.08);
+}
+
+.workflow-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 12px;
+  color: var(--ink);
+  line-height: 1.5;
+}
+
+.workflow-message svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: var(--teal);
+}
+
+.workflow-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.workflow-actions .compact {
+  min-height: 34px;
+  padding: 0 11px;
+  font-size: 0.8rem;
+}
+
+.workflow-timeline {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.workflow-timeline li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 9px;
+}
+
+.event-dot {
+  width: 10px;
+  height: 10px;
+  margin-top: 6px;
+  border-radius: 50%;
+  background: var(--teal);
+}
+
+.event-dot.human {
+  background: var(--indigo);
+}
+
+.workflow-timeline strong,
+.workflow-timeline span,
+.workflow-timeline time {
+  display: inline;
+  margin-right: 7px;
+  line-height: 1.45;
+}
+
+.workflow-timeline strong {
+  color: var(--ink);
+  font-size: 0.84rem;
+}
+
+.workflow-timeline span,
+.workflow-timeline time {
+  color: var(--muted);
+  font-size: 0.8rem;
+  text-transform: capitalize;
+}
+
 .message-content p {
   margin: 0;
   white-space: pre-wrap;
@@ -620,6 +743,17 @@
 
 .message-content p + p {
   margin-top: 12px;
+}
+
+.streaming-cursor {
+  display: inline-block;
+  width: 8px;
+  height: 1.1em;
+  margin-left: 3px;
+  vertical-align: -0.15em;
+  border-radius: 2px;
+  background: var(--teal);
+  animation: cursorBlink 900ms steps(2, start) infinite;
 }
 
 .code-shell {
@@ -782,7 +916,8 @@
 }
 
 .primary-button,
-.secondary-button {
+.secondary-button,
+.danger-button {
   min-height: 36px;
   display: inline-flex;
   align-items: center;
@@ -817,8 +952,20 @@
   background: #f8f5ee;
 }
 
+.danger-button {
+  color: var(--danger);
+  background: rgba(194, 65, 59, 0.08);
+  border-color: rgba(194, 65, 59, 0.25);
+}
+
+.danger-button:hover:not(:disabled) {
+  background: rgba(194, 65, 59, 0.14);
+  border-color: rgba(194, 65, 59, 0.42);
+}
+
 .primary-button:disabled,
-.secondary-button:disabled {
+.secondary-button:disabled,
+.danger-button:disabled {
   cursor: not-allowed;
   opacity: 0.55;
 }
@@ -834,6 +981,12 @@
   40% {
     opacity: 1;
     transform: translateY(-2px);
+  }
+}
+
+@keyframes cursorBlink {
+  50% {
+    opacity: 0;
   }
 }
 
@@ -1080,7 +1233,8 @@
   }
 
   .primary-button,
-  .secondary-button {
+  .secondary-button,
+  .danger-button {
     flex: 1 1 130px;
   }
 

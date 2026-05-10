@@ -37,6 +37,17 @@ const ChatInterface = () => {
     () => activeConversation?.title || 'New collaboration',
     [activeConversation]
   );
+  const scrollSignature = useMemo(() => {
+    const messages = activeConversation?.messages || [];
+    const lastMessage = messages[messages.length - 1];
+
+    return [
+      messages.length,
+      lastMessage?.id || '',
+      String(lastMessage?.content || '').length,
+      lastMessage?.isThinking ? 'working' : 'done'
+    ].join(':');
+  }, [activeConversation]);
 
   useEffect(() => {
     chatController.current.setUpdateCallback(() => {
@@ -63,7 +74,7 @@ const ChatInterface = () => {
     if ((activeConversation?.messages || []).length > 0) {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
     }
-  }, [activeConversation?.messages?.length, isProcessing]);
+  }, [scrollSignature, isProcessing, activeConversation?.messages]);
 
   const checkConnection = async () => {
     setConnectionStatus('checking');
@@ -109,6 +120,44 @@ const ChatInterface = () => {
 
   const handleClearChat = () => {
     chatController.current.clearActiveConversation();
+  };
+
+  const handleCancelProcess = () => {
+    chatController.current.cancelCurrentRequest();
+  };
+
+  const handleWorkflowAction = async (action, task) => {
+    if (!task?.task_id || isProcessing) return;
+
+    let payload = {};
+
+    if (action === 'edit-plan') {
+      const editedPlan = window.prompt('Edit the plan before approval:', task.plan || '');
+      if (editedPlan === null) return;
+      payload = { plan: editedPlan };
+    }
+
+    if (action === 'request-revision') {
+      const feedback = window.prompt('What should be revised?', '');
+      if (feedback === null) return;
+      payload = { feedback };
+    }
+
+    if (action === 'reject-output') {
+      const reason = window.prompt('Why are you rejecting this output?', '');
+      if (reason === null) return;
+      payload = { reason };
+    }
+
+    setIsProcessing(true);
+    try {
+      await chatController.current.runWorkflowAction(action, task, payload);
+      checkConnection();
+    } catch (error) {
+      setConnectionStatus('disconnected');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const connectionLabel = {
@@ -197,7 +246,11 @@ const ChatInterface = () => {
             <AgentStatus isProcessing={isProcessing} />
 
             <section className="chat-scroll-area" aria-label="Conversation">
-              <MessageList messages={activeConversation?.messages || []} />
+              <MessageList
+                messages={activeConversation?.messages || []}
+                onWorkflowAction={handleWorkflowAction}
+                actionsDisabled={isProcessing}
+              />
               <div ref={messagesEndRef} />
             </section>
 
@@ -205,6 +258,7 @@ const ChatInterface = () => {
               onSendMessage={handleSendMessage}
               isProcessing={isProcessing}
               onClearChat={handleClearChat}
+              onCancelProcess={handleCancelProcess}
             />
           </>
         ) : (

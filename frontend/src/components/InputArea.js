@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CornerDownLeft, Eraser, Loader2, SendHorizontal } from 'lucide-react';
+import { CircleStop, CornerDownLeft, Eraser, Loader2, SendHorizontal } from 'lucide-react';
 
 const presetGoals = [
   'Build a chatbot with FastAPI and React',
@@ -8,7 +8,7 @@ const presetGoals = [
   'Build a weather dashboard with API integration'
 ];
 
-const InputArea = ({ onSendMessage, isProcessing, onClearChat }) => {
+const InputArea = ({ onSendMessage, isProcessing, onClearChat, onCancelProcess }) => {
   const [inputValue, setInputValue] = useState('');
 
   const submitMessage = (value = inputValue) => {
@@ -76,6 +76,16 @@ const InputArea = ({ onSendMessage, isProcessing, onClearChat }) => {
             <Eraser size={16} strokeWidth={2} />
             Clear
           </button>
+          {isProcessing && (
+            <button
+              className="danger-button"
+              type="button"
+              onClick={onCancelProcess}
+            >
+              <CircleStop size={16} strokeWidth={2.2} />
+              Cancel
+            </button>
+          )}
           <button
             className="primary-button"
             type="submit"

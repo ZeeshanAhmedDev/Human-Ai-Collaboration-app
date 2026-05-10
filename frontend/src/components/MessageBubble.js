@@ -10,6 +10,7 @@ import {
   MonitorDot,
   UserRound
 } from 'lucide-react';
+import WorkflowPanel from './WorkflowPanel.js';
 
 const agentMeta = {
   planner: {
@@ -76,7 +77,7 @@ const renderContent = (content) => {
   });
 };
 
-const MessageBubble = ({ message }) => {
+const MessageBubble = ({ message, onWorkflowAction, actionsDisabled }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const content = String(message.content || '');
   const meta = agentMeta[message.agent] || agentMeta.system;
@@ -84,7 +85,7 @@ const MessageBubble = ({ message }) => {
   const Icon = isUser ? UserRound : meta.icon || Bot;
   const statusIcon = message.isThinking ? CircleDashed : CheckCircle2;
   const StatusIcon = statusIcon;
-  const shouldCollapse = content.length > 1800 && message.type === 'ai';
+  const shouldCollapse = content.length > 1800 && message.type === 'ai' && !message.isThinking;
 
   const visibleContent = useMemo(() => {
     if (!shouldCollapse || isExpanded) return content;
@@ -109,7 +110,18 @@ const MessageBubble = ({ message }) => {
           </div>
         </header>
 
-        <div className="message-content">{renderContent(visibleContent)}</div>
+        {message.type === 'workflow' ? (
+          <WorkflowPanel
+            task={message.workflow}
+            onAction={onWorkflowAction}
+            disabled={actionsDisabled}
+          />
+        ) : (
+          <div className="message-content">
+            {renderContent(visibleContent)}
+            {message.isThinking && content && <span className="streaming-cursor" aria-hidden="true" />}
+          </div>
+        )}
 
         {message.isThinking && (
           <div className="thinking-bar" aria-label="Processing">

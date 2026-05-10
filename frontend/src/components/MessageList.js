@@ -8,7 +8,7 @@ const starterPrompts = [
   'Design a task board with automated review steps'
 ];
 
-const MessageList = ({ messages }) => {
+const MessageList = ({ messages, onWorkflowAction, actionsDisabled }) => {
   if (messages.length === 0) {
     return (
       <div className="empty-conversation">
@@ -18,13 +18,13 @@ const MessageList = ({ messages }) => {
         <p className="eyebrow">New session</p>
         <h2>Start with a clear software goal.</h2>
         <p className="empty-copy">
-          The agent team will turn your request into a plan, implementation, tests, and review notes.
+          The system classifies the request, creates a plan, and waits for human approval before implementation.
         </p>
 
         <div className="empty-flow" aria-label="Collaboration flow">
           <span>Human goal</span>
           <ArrowRight size={15} strokeWidth={2} />
-          <span>Agent pipeline</span>
+          <span>Human approval</span>
           <ArrowRight size={15} strokeWidth={2} />
           <span>Reviewed output</span>
         </div>
@@ -49,7 +49,12 @@ const MessageList = ({ messages }) => {
   return (
     <div className="message-list">
       {messages.map((message) => (
-        <MessageBubble key={message.id} message={message} />
+        <MessageBubble
+          key={message.id}
+          message={message}
+          onWorkflowAction={onWorkflowAction}
+          actionsDisabled={actionsDisabled}
+        />
       ))}
     </div>
   );
