@@ -1,10 +1,12 @@
 import React, { useMemo, useState } from 'react';
 import {
   Bot,
+  Check,
   CheckCircle2,
   CircleDashed,
   Code2,
   ClipboardList,
+  Copy,
   FileText,
   FileSearch,
   FlaskConical,
@@ -262,9 +264,11 @@ const formatAttachmentSize = (bytes) => {
 
 const MessageBubble = ({ message, onWorkflowAction, actionsDisabled }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
   const content = String(message.content || '');
   const meta = agentMeta[message.agent] || agentMeta.system;
   const isUser = message.type === 'user';
+  const canCopy = !isUser && message.type !== 'workflow' && Boolean(content.trim()) && !message.isThinking;
   const Icon = isUser ? UserRound : meta.icon || Bot;
   const statusIcon = message.isThinking ? CircleDashed : CheckCircle2;
   const StatusIcon = statusIcon;
@@ -274,6 +278,32 @@ const MessageBubble = ({ message, onWorkflowAction, actionsDisabled }) => {
     if (!shouldCollapse || isExpanded) return content;
     return `${content.slice(0, 1800).trim()}...`;
   }, [content, isExpanded, shouldCollapse]);
+
+  const handleCopyOutput = async () => {
+    const textToCopy = content.trim();
+    if (!textToCopy) return;
+
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(textToCopy);
+      } else {
+        const textarea = document.createElement('textarea');
+        textarea.value = textToCopy;
+        textarea.setAttribute('readonly', '');
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+      }
+
+      setIsCopied(true);
+      window.setTimeout(() => setIsCopied(false), 1400);
+    } catch (error) {
+      setIsCopied(false);
+    }
+  };
 
   return (
     <article className={`message-bubble ${message.type} ${message.agent || 'general'}`}>
@@ -287,9 +317,27 @@ const MessageBubble = ({ message, onWorkflowAction, actionsDisabled }) => {
             <div className="message-author">{isUser ? 'You' : meta.label}</div>
             <div className="message-role">{isUser ? 'Project request' : meta.role}</div>
           </div>
-          <div className={`message-status ${message.isThinking ? 'working' : 'done'}`}>
-            <StatusIcon size={14} strokeWidth={2.2} />
-            <span>{message.isThinking ? 'Working' : formatTime(message.timestamp)}</span>
+          <div className="message-header-actions">
+            <div className={`message-status ${message.isThinking ? 'working' : 'done'}`}>
+              <StatusIcon size={14} strokeWidth={2.2} />
+              <span>{message.isThinking ? 'Working' : formatTime(message.timestamp)}</span>
+            </div>
+            {canCopy && (
+              <button
+                className={`copy-output-button ${isCopied ? 'copied' : ''}`}
+                type="button"
+                onClick={handleCopyOutput}
+                title={isCopied ? 'Copied' : 'Copy output'}
+                aria-label={isCopied ? 'Copied output' : 'Copy output'}
+              >
+                {isCopied ? (
+                  <Check size={14} strokeWidth={2.4} />
+                ) : (
+                  <Copy size={14} strokeWidth={2.1} />
+                )}
+                <span>{isCopied ? 'Copied' : 'Copy'}</span>
+              </button>
+            )}
           </div>
         </header>
 

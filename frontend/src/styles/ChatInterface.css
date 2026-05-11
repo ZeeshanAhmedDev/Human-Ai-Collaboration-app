@@ -611,6 +611,42 @@
   animation: spin 1s linear infinite;
 }
 
+.message-header-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.copy-output-button {
+  min-height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0 9px;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.68);
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.copy-output-button:hover {
+  border-color: rgba(15, 118, 110, 0.35);
+  color: var(--teal);
+  background: rgba(15, 118, 110, 0.08);
+}
+
+.copy-output-button.copied {
+  border-color: rgba(21, 128, 61, 0.28);
+  color: var(--success);
+  background: rgba(21, 128, 61, 0.08);
+}
+
 .message-content {
   padding: 15px 16px 16px;
   overflow-wrap: anywhere;
@@ -1396,6 +1432,11 @@ p + .markdown-list {
 
   .message-status {
     align-self: flex-start;
+  }
+
+  .message-header-actions {
+    width: 100%;
+    justify-content: space-between;
   }
 
   .composer {
