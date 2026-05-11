@@ -26,7 +26,7 @@ const formatFileSize = (bytes) => {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 };
 
-const InputArea = ({ onSendMessage, isProcessing, onClearChat, onCancelProcess }) => {
+const InputArea = ({ onSendMessage, isProcessing, onCancelProcess }) => {
   const [inputValue, setInputValue] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
   const [fileError, setFileError] = useState('');
@@ -93,6 +93,11 @@ const InputArea = ({ onSendMessage, isProcessing, onClearChat, onCancelProcess }
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+  };
+
+  const clearTypedText = () => {
+    setInputValue('');
+    setFileError('');
   };
 
   return (
@@ -174,8 +179,9 @@ const InputArea = ({ onSendMessage, isProcessing, onClearChat, onCancelProcess }
           <button
             className="secondary-button"
             type="button"
-            onClick={onClearChat}
-            disabled={isProcessing}
+            onClick={clearTypedText}
+            disabled={isProcessing || (!inputValue && !fileError)}
+            title="Clear typed text"
           >
             <Eraser size={16} strokeWidth={2} />
             Clear

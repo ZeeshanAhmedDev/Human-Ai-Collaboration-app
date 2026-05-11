@@ -118,10 +118,6 @@ const ChatInterface = () => {
     }
   };
 
-  const handleClearChat = () => {
-    chatController.current.clearActiveConversation();
-  };
-
   const handleCancelProcess = () => {
     chatController.current.cancelCurrentRequest();
   };
@@ -257,7 +253,6 @@ const ChatInterface = () => {
             <InputArea
               onSendMessage={handleSendMessage}
               isProcessing={isProcessing}
-              onClearChat={handleClearChat}
               onCancelProcess={handleCancelProcess}
             />
           </>
