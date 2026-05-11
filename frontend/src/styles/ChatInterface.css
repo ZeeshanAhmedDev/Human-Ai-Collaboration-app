@@ -745,6 +745,130 @@
   margin-top: 12px;
 }
 
+.message-content strong {
+  color: var(--ink);
+  font-weight: 850;
+}
+
+.inline-code {
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 5px;
+  padding: 1px 5px;
+  color: #0f5f59;
+  background: rgba(15, 118, 110, 0.08);
+  font-family:
+    "SFMono-Regular",
+    Consolas,
+    "Liberation Mono",
+    monospace;
+  font-size: 0.9em;
+}
+
+.markdown-heading {
+  margin: 18px 0 8px;
+  color: var(--ink);
+  line-height: 1.3;
+  letter-spacing: 0;
+}
+
+.markdown-heading:first-child {
+  margin-top: 0;
+}
+
+.markdown-heading.level-1,
+.markdown-heading.level-2 {
+  font-size: 1.02rem;
+  font-weight: 900;
+}
+
+.markdown-heading.level-3 {
+  font-size: 0.96rem;
+  font-weight: 875;
+}
+
+.markdown-heading.level-4,
+.markdown-heading.level-5,
+.markdown-heading.level-6 {
+  font-size: 0.9rem;
+  font-weight: 850;
+  color: #344054;
+}
+
+.markdown-list {
+  display: grid;
+  gap: 8px;
+  margin: 10px 0 0;
+  padding-left: 22px;
+  line-height: 1.6;
+}
+
+.markdown-list + .markdown-list,
+.markdown-list + p,
+p + .markdown-list {
+  margin-top: 12px;
+}
+
+.markdown-list li {
+  padding-left: 2px;
+}
+
+.markdown-list li::marker {
+  color: var(--teal);
+  font-weight: 850;
+}
+
+.markdown-quote {
+  margin: 10px 0 0;
+  border-left: 3px solid var(--teal);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 9px 12px;
+  color: #344054;
+  background: rgba(15, 118, 110, 0.08);
+  line-height: 1.6;
+}
+
+.markdown-rule {
+  height: 1px;
+  margin: 16px 0;
+  border: 0;
+  background: var(--line);
+}
+
+.message-attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.message-attachment {
+  min-width: 0;
+  max-width: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid rgba(29, 78, 216, 0.2);
+  border-radius: var(--radius);
+  padding: 6px 8px;
+  color: #1e3a8a;
+  background: rgba(29, 78, 216, 0.08);
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.message-attachment span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.message-attachment small {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
 .streaming-cursor {
   display: inline-block;
   width: 8px;
