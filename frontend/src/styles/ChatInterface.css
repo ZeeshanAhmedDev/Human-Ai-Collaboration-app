@@ -895,6 +895,70 @@
   cursor: not-allowed;
 }
 
+.attachment-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 12px 10px;
+}
+
+.attachment-chip {
+  min-width: 0;
+  max-width: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgba(15, 118, 110, 0.24);
+  border-radius: var(--radius);
+  padding: 7px 8px 7px 10px;
+  color: var(--teal);
+  background: rgba(15, 118, 110, 0.08);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.attachment-chip span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attachment-chip small {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-size: 0.74rem;
+}
+
+.attachment-chip button {
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 6px;
+  color: var(--teal);
+  background: transparent;
+  cursor: pointer;
+}
+
+.attachment-chip button:hover:not(:disabled) {
+  background: rgba(15, 118, 110, 0.12);
+}
+
+.attachment-error {
+  width: 100%;
+  color: var(--danger);
+  font-size: 0.82rem;
+  font-weight: 750;
+}
+
+.hidden-file-input {
+  display: none;
+}
+
 .composer-actions {
   display: flex;
   align-items: center;
@@ -929,6 +993,11 @@
   cursor: pointer;
   font-weight: 850;
   white-space: nowrap;
+}
+
+.icon-only {
+  width: 36px;
+  padding: 0;
 }
 
 .primary-button {
@@ -1236,6 +1305,10 @@
   .secondary-button,
   .danger-button {
     flex: 1 1 130px;
+  }
+
+  .composer-actions .icon-only {
+    flex: 0 0 42px;
   }
 
   .kpi-header {

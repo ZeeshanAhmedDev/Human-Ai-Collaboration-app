@@ -5,6 +5,7 @@ import {
   CircleDashed,
   Code2,
   ClipboardList,
+  FileText,
   FileSearch,
   FlaskConical,
   MonitorDot,
@@ -77,6 +78,12 @@ const renderContent = (content) => {
   });
 };
 
+const formatAttachmentSize = (bytes) => {
+  if (!bytes) return '';
+  if (bytes < 1024 * 1024) return `${Math.ceil(bytes / 1024)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+};
+
 const MessageBubble = ({ message, onWorkflowAction, actionsDisabled }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const content = String(message.content || '');
@@ -119,6 +126,17 @@ const MessageBubble = ({ message, onWorkflowAction, actionsDisabled }) => {
         ) : (
           <div className="message-content">
             {renderContent(visibleContent)}
+            {message.attachments?.length > 0 && (
+              <div className="message-attachments">
+                {message.attachments.map((attachment) => (
+                  <span className="message-attachment" key={`${attachment.name}-${attachment.size}`}>
+                    <FileText size={14} strokeWidth={2} />
+                    <span>{attachment.name}</span>
+                    <small>{formatAttachmentSize(attachment.size)}</small>
+                  </span>
+                ))}
+              </div>
+            )}
             {message.isThinking && content && <span className="streaming-cursor" aria-hidden="true" />}
           </div>
         )}

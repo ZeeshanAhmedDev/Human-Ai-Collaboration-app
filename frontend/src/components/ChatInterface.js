@@ -104,12 +104,12 @@ const ChatInterface = () => {
     chatController.current.deleteConversation(conversationId);
   };
 
-  const handleSendMessage = async (message) => {
+  const handleSendMessage = async (message, attachments = []) => {
     if (!message.trim() || isProcessing) return;
 
     setIsProcessing(true);
     try {
-      await chatController.current.sendGoal(message);
+      await chatController.current.sendGoal(message, attachments);
       checkConnection();
     } catch (error) {
       setConnectionStatus('disconnected');

@@ -3,6 +3,30 @@ import axios from 'axios';
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
 const API_TIMEOUT = Number(process.env.REACT_APP_API_TIMEOUT || 900000);
 
+const hasAttachments = (attachments) => Array.isArray(attachments) && attachments.length > 0;
+
+const buildExecuteBody = (goal, attachments = []) => {
+  if (!hasAttachments(attachments)) {
+    return {
+      body: JSON.stringify({ goal }),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    };
+  }
+
+  const formData = new FormData();
+  formData.append('goal', goal);
+  attachments.forEach((file) => {
+    formData.append('attachments', file);
+  });
+
+  return {
+    body: formData,
+    headers: {},
+  };
+};
+
 const parseSseEvent = (rawEvent) => {
   const lines = rawEvent.split(/\r?\n/);
   let event = 'message';
@@ -41,8 +65,20 @@ class ApiService {
     });
   }
 
-  async executeGoal(goal) {
+  async executeGoal(goal, attachments = []) {
     try {
+      if (hasAttachments(attachments)) {
+        const formData = new FormData();
+        formData.append('goal', goal);
+        attachments.forEach((file) => formData.append('attachments', file));
+        const response = await this.client.post('/execute', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+        return response.data;
+      }
+
       const response = await this.client.post('/execute', { goal });
       return response.data;
     } catch (error) {
@@ -66,17 +102,18 @@ class ApiService {
     }
   }
 
-  async executeGoalStream(goal, handlers = {}, signal = null) {
+  async executeGoalStream(goal, handlers = {}, signal = null, attachments = []) {
     let finalData = null;
+    const requestBody = buildExecuteBody(goal, attachments);
 
     try {
       const response = await fetch(`${API_BASE_URL.replace(/\/$/, '')}/execute/stream`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          ...requestBody.headers,
           Accept: 'text/event-stream',
         },
-        body: JSON.stringify({ goal }),
+        body: requestBody.body,
         signal,
       });
 

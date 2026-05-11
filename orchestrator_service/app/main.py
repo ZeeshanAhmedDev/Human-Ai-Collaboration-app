@@ -33,6 +33,7 @@ SMALL_TALK_RESPONSE = (
     "I am ready to help you with your Human-AI collaboration project. "
     "Please describe a software task when you want the AI team to assist."
 )
+ATTACHMENT_CONTEXT_LIMIT = int(os.getenv("ATTACHMENT_CONTEXT_LIMIT", "24000"))
 
 
 def _utc_now() -> str:
@@ -90,6 +91,78 @@ def _count_lines(*sections) -> int:
         elif section:
             total += len(str(section).splitlines())
     return total
+
+
+def _prepare_attachments(attachments) -> tuple[list[dict], str]:
+    prepared = []
+    blocks = []
+    used_chars = 0
+
+    for attachment in attachments or []:
+        if not isinstance(attachment, dict):
+            continue
+
+        filename = str(attachment.get("filename") or "attachment").strip()
+        text = str(attachment.get("text") or "").strip()
+        if not text:
+            continue
+
+        remaining = max(0, ATTACHMENT_CONTEXT_LIMIT - used_chars)
+        if remaining <= 0:
+            break
+
+        truncated_text = text[:remaining].rstrip()
+        used_chars += len(truncated_text)
+        was_truncated = bool(attachment.get("truncated")) or len(text) > len(truncated_text)
+
+        prepared.append(
+            {
+                "filename": filename,
+                "content_type": attachment.get("content_type") or "",
+                "size_bytes": _safe_int(attachment.get("size_bytes")),
+                "text_characters": len(truncated_text),
+                "truncated": was_truncated,
+            }
+        )
+        blocks.append(
+            "\n".join(
+                [
+                    f"Attachment: {filename}",
+                    f"Characters extracted: {len(truncated_text)}",
+                    "Extracted text:",
+                    truncated_text,
+                ]
+            )
+        )
+
+    if not blocks:
+        return prepared, ""
+
+    return prepared, "\n\n---\n\n".join(blocks)
+
+
+def _agent_context(goal: str, attachment_context: str = "") -> str:
+    goal_text = str(goal or "").strip()
+    if not attachment_context:
+        return goal_text
+
+    return (
+        f"{goal_text}\n\n"
+        "Attached document context for the AI agents. Use this content as supporting context, "
+        "but keep the human approval workflow and do not assume the attachment is automatically correct.\n\n"
+        f"{attachment_context}"
+    )
+
+
+def _task_agent_context(task: dict) -> str:
+    return _agent_context(task.get("original_prompt", ""), task.get("attachment_context", ""))
+
+
+def _classification_source(goal: str, attachment_context: str) -> str:
+    goal_intent = _classify_intent(goal)
+    if goal_intent != "unknown" or not attachment_context:
+        return goal
+    return _agent_context(goal, attachment_context[:4000])
 
 
 def _classify_intent(text: str) -> str:
@@ -191,7 +264,14 @@ def _record_event(
     )
 
 
-def _create_task(prompt: str, intent: str, status: str = "classified", message: str | None = None) -> dict:
+def _create_task(
+    prompt: str,
+    intent: str,
+    status: str = "classified",
+    message: str | None = None,
+    attachments: list[dict] | None = None,
+    attachment_context: str = "",
+) -> dict:
     task = _task_request(
         "POST",
         "/tasks",
@@ -202,10 +282,23 @@ def _create_task(prompt: str, intent: str, status: str = "classified", message: 
             "status": status,
             "model": MODEL_NAME,
             "message": message,
+            "attachments": attachments or [],
+            "attachment_count": len(attachments or []),
+            "attachment_context": attachment_context,
             "start_time": _utc_now(),
         },
     )
     _record_event(task["task_id"], "human", "User", "created_task", prompt)
+    if attachments:
+        attachment_names = ", ".join(item.get("filename", "attachment") for item in attachments)
+        _record_event(
+            task["task_id"],
+            "human",
+            "User",
+            "attached_documents",
+            attachment_names,
+            metadata={"attachments": attachments},
+        )
     _record_event(
         task["task_id"],
         "ai",
@@ -294,7 +387,7 @@ def _plan_task(task: dict) -> dict:
         task,
         "planner",
         agents.planner,
-        task["original_prompt"],
+        _task_agent_context(task),
         "generated_plan",
     )
     updates = {
@@ -311,7 +404,13 @@ def _plan_task(task: dict) -> dict:
 
 def _generate_full_output(task: dict, payload: str | None = None) -> dict:
     task = _update_task(task["task_id"], {"status": "ai_generating"})
-    approved_context = payload or task.get("plan") or task.get("original_prompt") or ""
+    approved_context = payload or task.get("plan") or _task_agent_context(task)
+    if task.get("attachment_context") and payload:
+        approved_context = (
+            f"{approved_context}\n\n"
+            "Original attachment context for implementation and validation:\n"
+            f"{task.get('attachment_context')}"
+        )
 
     code, developer_metadata, _ = _run_agent_and_record(
         task,
@@ -375,9 +474,11 @@ def _run_single_agent_task(task: dict, agent_name: str, agent_func, payload: str
     )
 
 
-def _initial_workflow(goal: str) -> dict:
-    intent = _classify_intent(goal)
-    task = _create_task(goal, intent)
+def _initial_workflow(goal: str, attachments: list[dict] | None = None) -> dict:
+    prepared_attachments, attachment_context = _prepare_attachments(attachments)
+    intent = _classify_intent(_classification_source(goal, attachment_context))
+    task = _create_task(goal, intent, attachments=prepared_attachments, attachment_context=attachment_context)
+    agent_goal = _agent_context(goal, attachment_context)
 
     if intent == "small_talk":
         _record_event(task["task_id"], "ai", "Assistant", "answered_small_talk", SMALL_TALK_RESPONSE)
@@ -402,14 +503,14 @@ def _initial_workflow(goal: str) -> dict:
         return _plan_task(task)
 
     if intent == "code_generation":
-        return _generate_full_output(task, goal)
+        return _generate_full_output(task, agent_goal)
 
     if intent == "test_generation":
         return _run_single_agent_task(
             task,
             "tester",
             agents.tester,
-            goal,
+            agent_goal,
             "tests",
             "generated_tests",
         )
@@ -419,7 +520,7 @@ def _initial_workflow(goal: str) -> dict:
             task,
             "reviewer",
             agents.reviewer,
-            goal,
+            agent_goal,
             "review",
             "reviewed_code",
         )
@@ -433,7 +534,7 @@ def run_workflow(payload: dict):
     if not goal:
         raise HTTPException(status_code=400, detail="Goal is required")
 
-    return _initial_workflow(goal)
+    return _initial_workflow(goal, payload.get("attachments") or [])
 
 
 def _stream_agent(agent_name, stream_func, payload):
@@ -471,11 +572,18 @@ def stream_workflow(payload: dict):
     goal = str(payload.get("goal", "")).strip()
     if not goal:
         raise HTTPException(status_code=400, detail="Goal is required")
+    prepared_attachments, attachment_context = _prepare_attachments(payload.get("attachments") or [])
+    agent_goal = _agent_context(goal, attachment_context)
 
     def event_generator():
         try:
-            intent = _classify_intent(goal)
-            task = _create_task(goal, intent)
+            intent = _classify_intent(_classification_source(goal, attachment_context))
+            task = _create_task(
+                goal,
+                intent,
+                attachments=prepared_attachments,
+                attachment_context=attachment_context,
+            )
             yield _sse("classified", {"task": task, "intent": intent, "status": task.get("status")})
 
             if intent == "small_talk":
@@ -499,7 +607,7 @@ def stream_workflow(payload: dict):
 
             if intent in {"software_task", "project_planning"}:
                 task = _update_task(task["task_id"], {"status": "ai_generating"})
-                plan, metadata, elapsed = yield from _stream_agent("planner", agents.planner_stream, goal)
+                plan, metadata, elapsed = yield from _stream_agent("planner", agents.planner_stream, agent_goal)
                 _record_event(
                     task["task_id"],
                     "ai",
@@ -526,7 +634,7 @@ def stream_workflow(payload: dict):
                 return
 
             if intent == "code_generation":
-                task = _generate_full_output(task, goal)
+                task = _generate_full_output(task, agent_goal)
                 yield _sse("final", task)
                 return
 
@@ -535,7 +643,7 @@ def stream_workflow(payload: dict):
                     task,
                     "tester",
                     agents.tester,
-                    goal,
+                    agent_goal,
                     "tests",
                     "generated_tests",
                 )
@@ -547,7 +655,7 @@ def stream_workflow(payload: dict):
                     task,
                     "reviewer",
                     agents.reviewer,
-                    goal,
+                    agent_goal,
                     "review",
                     "reviewed_code",
                 )

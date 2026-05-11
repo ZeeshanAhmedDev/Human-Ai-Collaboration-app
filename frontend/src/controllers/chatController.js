@@ -168,16 +168,23 @@ class ChatController {
     this.notifyUpdate();
   }
 
-  async sendGoal(goal) {
+  async sendGoal(goal, attachments = []) {
     const trimmedGoal = String(goal || '').trim();
     if (!trimmedGoal || this.isProcessing) return null;
+    const attachmentMeta = attachments.map((file) => ({
+      name: file.name,
+      size: file.size,
+      type: file.type
+    }));
 
     this.isProcessing = true;
     this.currentAbortController = new AbortController();
-    this.addMessage(trimmedGoal, 'user');
+    this.addMessage(trimmedGoal, 'user', null, false, { attachments: attachmentMeta });
 
     const progressMessage = this.addMessage(
-      'Coordinating the planner, developer, tester, and reviewer agents.',
+      attachments.length > 0
+        ? 'Reading the attachment and preparing the supervised AI workflow.'
+        : 'Coordinating the supervised AI workflow.',
       'system',
       'system',
       true
@@ -272,7 +279,8 @@ class ChatController {
             }
           }
         },
-        this.currentAbortController.signal
+        this.currentAbortController.signal,
+        attachments
       );
 
       removeProgress();
