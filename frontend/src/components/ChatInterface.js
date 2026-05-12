@@ -2,9 +2,11 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Activity,
   BarChart3,
+  Moon,
   MessageSquareText,
   PanelLeftClose,
   PanelLeftOpen,
+  Sun,
   Wifi,
   WifiOff
 } from 'lucide-react';
@@ -22,7 +24,7 @@ const getDesktopSidebarState = () => {
   return window.matchMedia('(min-width: 920px)').matches;
 };
 
-const ChatInterface = () => {
+const ChatInterface = ({ theme, onToggleTheme }) => {
   const [conversations, setConversations] = useState([]);
   const [activeConversation, setActiveConversation] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -164,6 +166,8 @@ const ChatInterface = () => {
 
   const ConnectionIcon = connectionStatus === 'connected' ? Wifi : WifiOff;
   const ToggleIcon = sidebarOpen ? PanelLeftClose : PanelLeftOpen;
+  const ThemeIcon = theme === 'dark' ? Sun : Moon;
+  const themeLabel = theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode';
 
   return (
     <div className="workspace-shell">
@@ -206,6 +210,16 @@ const ChatInterface = () => {
             </div>
             <h1 title={activeTitle}>{activeTitle}</h1>
           </div>
+
+          <button
+            className="icon-button theme-toggle"
+            type="button"
+            onClick={onToggleTheme}
+            aria-label={themeLabel}
+            title={themeLabel}
+          >
+            <ThemeIcon size={19} strokeWidth={1.9} />
+          </button>
 
           <div className="view-switch" aria-label="Workspace view">
             <button

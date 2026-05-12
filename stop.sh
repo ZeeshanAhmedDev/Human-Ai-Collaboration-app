@@ -1,64 +1,77 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-# 🛑 AI Collaboration Platform - Stop Script
-# This script stops all running services
+set -Eeuo pipefail
 
-echo "🛑 Stopping AI Collaboration Platform..."
-echo "======================================"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$ROOT_DIR"
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+REMOVE_VOLUMES=false
 
-print_status() {
-    echo -e "${BLUE}[INFO]${NC} $1"
+usage() {
+  cat <<'USAGE'
+Usage: ./stop.sh [options]
+
+Stop the Human-AI Collaboration app.
+
+Options:
+  --volumes       Also delete Docker volumes, including local MongoDB data.
+  -h, --help      Show this help message.
+USAGE
 }
 
-print_success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $1"
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --volumes)
+      REMOVE_VOLUMES=true
+      shift
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "[ERROR] Unknown option: $1" >&2
+      usage
+      exit 1
+      ;;
+  esac
+done
+
+info() { echo "[INFO] $*"; }
+success() { echo "[OK] $*"; }
+
+compose() {
+  if docker compose version >/dev/null 2>&1; then
+    docker compose "$@"
+  elif command -v docker-compose >/dev/null 2>&1; then
+    docker-compose "$@"
+  else
+    echo "[ERROR] Docker Compose is not installed." >&2
+    exit 1
+  fi
 }
 
-# Stop Python services using saved PIDs
-if [ -f .gateway.pid ]; then
-    GATEWAY_PID=$(cat .gateway.pid)
-    kill $GATEWAY_PID 2>/dev/null && print_status "Gateway service stopped"
-    rm .gateway.pid
+if ! command -v docker >/dev/null 2>&1; then
+  echo "[ERROR] Docker is required to stop Docker Compose services." >&2
+  exit 1
 fi
 
-if [ -f .orchestrator.pid ]; then
-    ORCHESTRATOR_PID=$(cat .orchestrator.pid)
-    kill $ORCHESTRATOR_PID 2>/dev/null && print_status "Orchestrator service stopped"
-    rm .orchestrator.pid
+down_args=(down --remove-orphans)
+if [[ "$REMOVE_VOLUMES" == "true" ]]; then
+  down_args+=(--volumes)
 fi
 
-if [ -f .task.pid ]; then
-    TASK_PID=$(cat .task.pid)
-    kill $TASK_PID 2>/dev/null && print_status "Task service stopped"
-    rm .task.pid
+info "Stopping application containers"
+compose "${down_args[@]}"
+
+if [[ -f "docker-compose.dependencies.yml" ]]; then
+  info "Stopping optional dependency containers if they exist"
+  compose -f docker-compose.dependencies.yml "${down_args[@]}" >/dev/null 2>&1 || true
 fi
 
-if [ -f .frontend.pid ]; then
-    FRONTEND_PID=$(cat .frontend.pid)
-    kill $FRONTEND_PID 2>/dev/null && print_status "Frontend stopped"
-    rm .frontend.pid
-fi
-
-# Kill any remaining uvicorn and npm processes
-print_status "Cleaning up remaining processes..."
-pkill -f "uvicorn app.main:app" 2>/dev/null
-pkill -f "npm start" 2>/dev/null
-pkill -f "react-scripts start" 2>/dev/null
-
-# Stop Docker services
-print_status "Stopping Docker dependencies..."
-if command -v docker &> /dev/null; then
-    docker-compose -f docker-compose.dependencies.yml down 2>/dev/null
+success "All Docker services are stopped."
+if [[ "$REMOVE_VOLUMES" == "true" ]]; then
+  echo "Local Docker volumes were removed."
 else
-    print_status "Docker not available, skipping Docker cleanup"
+  echo "Local Docker volumes were preserved. Use ./stop.sh --volumes to delete them."
 fi
-
-print_success "All services stopped successfully!"
-echo ""
-print_status "To start again, run: ./start.sh"

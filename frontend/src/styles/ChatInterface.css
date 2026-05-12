@@ -40,7 +40,7 @@
   gap: 16px;
   padding: 12px 22px;
   border-bottom: 1px solid var(--line);
-  background: rgba(255, 253, 248, 0.92);
+  background: var(--topbar-bg);
   backdrop-filter: blur(18px);
   z-index: 10;
 }
@@ -92,14 +92,14 @@
 
 .connection-pill.connected {
   color: var(--success);
-  border-color: rgba(19, 138, 79, 0.22);
-  background: rgba(19, 138, 79, 0.08);
+  border-color: var(--success-soft);
+  background: var(--success-soft);
 }
 
 .connection-pill.disconnected {
   color: var(--danger);
-  border-color: rgba(194, 65, 59, 0.22);
-  background: rgba(194, 65, 59, 0.08);
+  border-color: var(--danger-border);
+  background: var(--danger-soft);
 }
 
 .connection-pill.checking {
@@ -145,7 +145,7 @@
   gap: 14px;
   padding: 10px 22px;
   border-bottom: 1px solid var(--line);
-  background: #fbf8f1;
+  background: var(--surface-soft);
 }
 
 .agent-strip-header {
@@ -176,7 +176,7 @@
 
 .pipeline-state.idle {
   color: var(--success);
-  background: rgba(19, 138, 79, 0.1);
+  background: var(--success-soft);
 }
 
 .pipeline-state.running {
@@ -268,7 +268,7 @@
 
 .agent-state.ready {
   color: var(--success);
-  background: rgba(19, 138, 79, 0.1);
+  background: var(--success-soft);
 }
 
 .agent-state.working {
@@ -336,8 +336,8 @@
 
 .dashboard-state.error {
   color: var(--danger);
-  border-color: rgba(194, 65, 59, 0.3);
-  background: rgba(194, 65, 59, 0.06);
+  border-color: var(--danger-border);
+  background: var(--danger-soft);
 }
 
 .kpi-grid {
@@ -355,7 +355,7 @@
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--surface-strong);
-  box-shadow: 0 10px 30px rgba(31, 41, 51, 0.07);
+  box-shadow: var(--kpi-shadow);
 }
 
 .kpi-icon {
@@ -464,7 +464,7 @@
   border: 1px solid var(--line);
   border-radius: 999px;
   padding: 8px 12px;
-  background: #fffaf1;
+  background: var(--surface-warm);
 }
 
 .starter-prompts {
@@ -515,20 +515,20 @@
   grid-column: 2;
   grid-row: 1;
   background: var(--ink);
-  color: #fff;
+  color: var(--ink-inverse);
 }
 
 .message-bubble.user .message-card {
   grid-column: 1;
   grid-row: 1;
-  background: #20312f;
-  color: #f8fffb;
-  border-color: #20312f;
+  background: var(--user-message-bg);
+  color: var(--user-message-ink);
+  border-color: var(--user-message-bg);
 }
 
 .message-bubble.user .message-role,
 .message-bubble.user .message-status {
-  color: rgba(248, 255, 251, 0.68);
+  color: var(--user-message-muted);
 }
 
 .message-avatar {
@@ -548,7 +548,7 @@
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--surface-strong);
-  box-shadow: 0 8px 28px rgba(31, 41, 51, 0.07);
+  box-shadow: var(--card-shadow);
   overflow: hidden;
 }
 
@@ -570,7 +570,7 @@
 
 .message-bubble.system .message-card {
   border-left: 4px solid var(--amber);
-  background: #fffaf0;
+  background: var(--system-message-bg);
 }
 
 .message-bubble.workflow .message-card {
@@ -582,7 +582,7 @@
   justify-content: space-between;
   gap: 12px;
   padding: 14px 16px 10px;
-  border-bottom: 1px solid rgba(223, 216, 202, 0.72);
+  border-bottom: 1px solid var(--message-divider);
 }
 
 .message-author {
@@ -628,7 +628,7 @@
   border-radius: 8px;
   padding: 0 9px;
   color: var(--muted);
-  background: rgba(255, 255, 255, 0.68);
+  background: var(--copy-bg);
   cursor: pointer;
   font-size: 0.78rem;
   font-weight: 850;
@@ -636,15 +636,15 @@
 }
 
 .copy-output-button:hover {
-  border-color: rgba(15, 118, 110, 0.35);
+  border-color: var(--teal-soft);
   color: var(--teal);
-  background: rgba(15, 118, 110, 0.08);
+  background: var(--copy-hover-bg);
 }
 
 .copy-output-button.copied {
-  border-color: rgba(21, 128, 61, 0.28);
+  border-color: var(--success-soft);
   color: var(--success);
-  background: rgba(21, 128, 61, 0.08);
+  background: var(--success-soft);
 }
 
 .message-content {
@@ -688,13 +688,13 @@
 .workflow-pill.status.completed,
 .workflow-pill.status.validated {
   color: var(--success);
-  background: rgba(19, 138, 79, 0.1);
+  background: var(--success-soft);
 }
 
 .workflow-pill.status.failed,
 .workflow-pill.status.rejected {
   color: var(--danger);
-  background: rgba(194, 65, 59, 0.08);
+  background: var(--danger-soft);
 }
 
 .workflow-message {
@@ -787,11 +787,11 @@
 }
 
 .inline-code {
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid var(--inline-code-border);
   border-radius: 5px;
   padding: 1px 5px;
-  color: #0f5f59;
-  background: rgba(15, 118, 110, 0.08);
+  color: var(--inline-code-ink);
+  background: var(--inline-code-bg);
   font-family:
     "SFMono-Regular",
     Consolas,
@@ -827,7 +827,7 @@
 .markdown-heading.level-6 {
   font-size: 0.9rem;
   font-weight: 850;
-  color: #344054;
+  color: var(--quote-ink);
 }
 
 .markdown-list {
@@ -858,8 +858,8 @@ p + .markdown-list {
   border-left: 3px solid var(--teal);
   border-radius: 0 var(--radius) var(--radius) 0;
   padding: 9px 12px;
-  color: #344054;
-  background: rgba(15, 118, 110, 0.08);
+  color: var(--quote-ink);
+  background: var(--quote-bg);
   line-height: 1.6;
 }
 
@@ -883,11 +883,11 @@ p + .markdown-list {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  border: 1px solid rgba(29, 78, 216, 0.2);
+  border: 1px solid var(--attachment-border);
   border-radius: var(--radius);
   padding: 6px 8px;
-  color: #1e3a8a;
-  background: rgba(29, 78, 216, 0.08);
+  color: var(--attachment-ink);
+  background: var(--attachment-bg);
   font-size: 0.8rem;
   font-weight: 800;
 }
@@ -918,16 +918,16 @@ p + .markdown-list {
 
 .code-shell {
   margin: 12px 0;
-  border: 1px solid #28313f;
+  border: 1px solid var(--code-border);
   border-radius: var(--radius);
   overflow: hidden;
-  background: #151b24;
+  background: var(--code-bg);
 }
 
 .code-label {
   padding: 7px 11px;
-  color: #d6e2ef;
-  background: #202938;
+  color: var(--code-label-ink);
+  background: var(--code-label-bg);
   font-size: 0.72rem;
   font-weight: 850;
   text-transform: uppercase;
@@ -937,7 +937,7 @@ p + .markdown-list {
   margin: 0;
   padding: 14px;
   overflow-x: auto;
-  color: #edf3f8;
+  color: var(--code-ink);
   font-family:
     "SFMono-Regular",
     Consolas,
@@ -983,7 +983,7 @@ p + .markdown-list {
 .composer {
   padding: 10px 22px 12px;
   border-top: 1px solid var(--line);
-  background: rgba(255, 253, 248, 0.94);
+  background: var(--composer-bg);
   backdrop-filter: blur(18px);
 }
 
@@ -1004,7 +1004,7 @@ p + .markdown-list {
   border-radius: 999px;
   padding: 0 12px;
   background: var(--surface-strong);
-  color: #344054;
+  color: var(--quote-ink);
   cursor: pointer;
   font-size: 0.82rem;
   font-weight: 700;
@@ -1029,7 +1029,7 @@ p + .markdown-list {
   border: 1px solid var(--line-strong);
   border-radius: var(--radius);
   background: var(--surface-strong);
-  box-shadow: 0 12px 36px rgba(31, 41, 51, 0.08);
+  box-shadow: var(--composer-shadow);
   overflow: hidden;
 }
 
@@ -1047,7 +1047,7 @@ p + .markdown-list {
 }
 
 .composer-form textarea::placeholder {
-  color: #98a2b3;
+  color: var(--placeholder);
 }
 
 .composer-form textarea:disabled {
@@ -1068,11 +1068,11 @@ p + .markdown-list {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  border: 1px solid rgba(15, 118, 110, 0.24);
+  border: 1px solid var(--teal-soft);
   border-radius: var(--radius);
   padding: 7px 8px 7px 10px;
   color: var(--teal);
-  background: rgba(15, 118, 110, 0.08);
+  background: var(--teal-soft);
   font-size: 0.82rem;
   font-weight: 800;
 }
@@ -1105,7 +1105,7 @@ p + .markdown-list {
 }
 
 .attachment-chip button:hover:not(:disabled) {
-  background: rgba(15, 118, 110, 0.12);
+  background: var(--copy-hover-bg);
 }
 
 .attachment-error {
@@ -1126,7 +1126,7 @@ p + .markdown-list {
   gap: 9px;
   padding: 8px;
   border-top: 1px solid var(--line);
-  background: #fbf8f1;
+  background: var(--surface-soft);
 }
 
 .submit-hint {
@@ -1161,13 +1161,13 @@ p + .markdown-list {
 }
 
 .primary-button {
-  color: #ffffff;
+  color: var(--ink-inverse);
   background: var(--teal);
   border-color: var(--teal);
 }
 
 .primary-button:hover:not(:disabled) {
-  background: #0b615b;
+  background: var(--primary-hover);
 }
 
 .secondary-button {
@@ -1178,18 +1178,18 @@ p + .markdown-list {
 
 .secondary-button:hover:not(:disabled) {
   border-color: var(--line-strong);
-  background: #f8f5ee;
+  background: var(--control-hover);
 }
 
 .danger-button {
   color: var(--danger);
-  background: rgba(194, 65, 59, 0.08);
-  border-color: rgba(194, 65, 59, 0.25);
+  background: var(--danger-soft);
+  border-color: var(--danger-border);
 }
 
 .danger-button:hover:not(:disabled) {
-  background: rgba(194, 65, 59, 0.14);
-  border-color: rgba(194, 65, 59, 0.42);
+  background: var(--danger-hover);
+  border-color: var(--danger-border);
 }
 
 .primary-button:disabled,
@@ -1267,7 +1267,7 @@ p + .markdown-list {
     inset: 0;
     z-index: 20;
     border: 0;
-    background: rgba(31, 41, 51, 0.38);
+    background: var(--sidebar-overlay);
     cursor: pointer;
   }
 

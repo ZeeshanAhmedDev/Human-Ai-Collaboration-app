@@ -1,29 +1,36 @@
+# Optional infrastructure-only compose file.
+# Use this only when you want MongoDB and a local Ollama server without starting
+# the frontend/backend application containers.
+
 services:
   mongodb:
     image: mongo:7.0
     container_name: ai-collaboration-mongodb
     ports:
-      - "27017:27017"
+      - "${MONGODB_PORT:-27017}:27017"
     environment:
-      MONGO_INITDB_DATABASE: ai_collab_team
+      - MONGO_INITDB_DATABASE=${DB_NAME:-ai_collab_team}
     volumes:
       - mongodb_data:/data/db
-      - ./scripts/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
     healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
 
   ollama:
     image: ollama/ollama:latest
     container_name: ai-collaboration-ollama
     ports:
-      - "11434:11434"
+      - "${OLLAMA_PORT:-11434}:11434"
     volumes:
       - ollama_data:/root/.ollama
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:11434/api/version"]
+      test: ["CMD", "ollama", "list"]
       interval: 30s
       timeout: 10s
-      retries: 3
+      retries: 5
+
+volumes:
+  mongodb_data:
+  ollama_data:

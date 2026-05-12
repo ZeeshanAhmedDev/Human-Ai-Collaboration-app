@@ -83,6 +83,12 @@ graph TB
 
 ## 🚀 Quick Start
 
+> Current automation note: the reliable path is Docker Compose through
+> `start.ps1` / `test.ps1` / `stop.ps1` on Windows, or
+> `start.sh` / `test.sh` / `stop.sh` in Bash. See [SCRIPTS.md](SCRIPTS.md)
+> and [docs/scripts-documentation.md](docs/scripts-documentation.md) for the
+> corrected commands.
+
 ### Prerequisites
 
 - **Docker Desktop** with WSL2 integration enabled

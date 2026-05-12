@@ -1,176 +1,143 @@
-# 🚀 Platform Management Scripts
+# Platform Management Scripts
 
-Quick reference for the AI Collaboration Platform management scripts.
-
-## Scripts Overview
-
-| Script | Purpose | Usage |
-|--------|---------|-------|
-| **start.sh** | Start entire platform | `./start.sh` |
-| **stop.sh** | Stop all services | `./stop.sh` |
-| **test.sh** | Test functionality | `./test.sh` |
+This project now has one clear automation path: run the application with Docker Compose, then use the scripts as convenient wrappers.
 
 ## Quick Start
 
+On Windows PowerShell:
+
+```powershell
+.\start.ps1
+.\test.ps1
+.\stop.ps1
+```
+
+On Git Bash, WSL, Linux, or macOS:
+
 ```bash
-# 1. Start the platform
 ./start.sh
-
-# 2. Access the application
-# Frontend: http://localhost:3000
-# Gateway API: http://localhost:8000
-
-# 3. Test everything works
 ./test.sh
-
-# 4. Stop when done
 ./stop.sh
 ```
 
-## What Each Script Does
+Open the app at:
 
-### `./start.sh` - Complete Platform Startup
-- ✅ Starts MongoDB database (Docker)
-- ✅ Starts Ollama AI service (Docker) 
-- ✅ Downloads AI model (qwen2.5-coder:1.5b-instruct)
-- ✅ Starts Gateway API (Python FastAPI)
-- ✅ Starts Orchestrator service (Python FastAPI)
-- ✅ Starts Task service (Python FastAPI)
-- ✅ Starts React frontend (Node.js)
-- ✅ Performs health checks
-- ✅ Opens browser automatically
-
-### `./stop.sh` - Clean Shutdown
-- 🛑 Stops all Python backend processes
-- 🛑 Stops React frontend
-- 🛑 Stops Docker containers (MongoDB, Ollama)
-- 🛑 Cleans up process files
-
-### `./test.sh` - Health & Functionality Tests
-- 🧪 Tests Docker services
-- 🧪 Tests API health endpoints
-- 🧪 Tests database connectivity
-- 🧪 Tests AI service
-- 🧪 Tests frontend accessibility
-- 🧪 Tests complete workflow
-
-## Platform Architecture
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                    🌐 Frontend (React)                   │
-│                   http://localhost:3000                  │
-└─────────────────────┬───────────────────────────────────┘
-                      │
-┌─────────────────────▼───────────────────────────────────┐
-│                🚪 Gateway API (FastAPI)                 │
-│                   http://localhost:8000                  │
-└─────────────┬───────────────────────────┬───────────────┘
-              │                           │
-     ┌────────▼──────────┐       ┌───────▼────────┐
-     │  🤖 Orchestrator   │       │  💾 Task       │
-     │  localhost:8001    │       │  localhost:8002│
-     └────────┬──────────┘       └───────┬────────┘
-              │                          │
-     ┌────────▼──────────┐       ┌───────▼────────┐
-     │  🧠 Ollama AI      │       │  🗄️ MongoDB    │
-     │  localhost:11434   │       │  localhost:27017│
-     └───────────────────┘       └────────────────┘
+```text
+http://localhost:3000
 ```
 
-## Service URLs
+## Script Overview
 
-After running `./start.sh`, access these URLs:
+| Script | Platform | Purpose |
+| --- | --- | --- |
+| `start.ps1` | Windows PowerShell | Build, start, and health-check the Docker app |
+| `stop.ps1` | Windows PowerShell | Stop containers cleanly |
+| `test.ps1` | Windows PowerShell | Verify endpoints and workflow behavior |
+| `start.sh` | Bash/WSL/Linux/macOS | Build, start, and health-check the Docker app |
+| `stop.sh` | Bash/WSL/Linux/macOS | Stop containers cleanly |
+| `test.sh` | Bash/WSL/Linux/macOS | Verify endpoints and workflow behavior |
 
-| Service | URL | Description |
-|---------|-----|-------------|
-| **Frontend** | http://localhost:3000 | Main user interface |
-| **Gateway API** | http://localhost:8000 | REST API gateway |
-| **Orchestrator** | http://localhost:8001 | AI agent coordination |
-| **Task Service** | http://localhost:8002 | Task management |
-| **Ollama AI** | http://localhost:11434 | AI model server |
-| **MongoDB** | mongodb://localhost:27017 | Database |
+## What Starts
 
-## Health Check Commands
+`docker-compose.yml` starts:
 
-```bash
-# Check all services are healthy
-curl http://localhost:8000/health
-curl http://localhost:8001/health
-curl http://localhost:8002/health
+- React frontend on `http://localhost:3000`
+- Gateway service on `http://localhost:8000`
+- Orchestrator service on `http://localhost:8001`
+- Task service on `http://localhost:8002`
+- MongoDB on `mongodb://localhost:27017` only when the `local-db` profile is enabled
 
-# Test AI service
-curl http://localhost:11434/api/version
+The optional `docker-compose.dependencies.yml` is only for starting MongoDB and local Ollama without the app containers.
 
-# Test goal execution
-curl -X POST http://localhost:8000/api/execute \
-  -H "Content-Type: application/json" \
-  -d '{"goal": "Create a hello world function"}'
+## Common Commands
+
+Start everything and rebuild images:
+
+```powershell
+.\start.ps1
 ```
 
-## Prerequisites
+Start without rebuilding:
 
-- **Docker Desktop** with WSL2 integration enabled
-- **Ports available**: 3000, 8000, 8001, 8002, 11434, 27017
-- **Disk space**: ~3GB for AI model download
-- **Memory**: ~4GB RAM recommended
+```powershell
+.\start.ps1 -NoBuild
+```
+
+Follow logs:
+
+```powershell
+docker compose logs -f
+```
+
+Run health checks:
+
+```powershell
+.\test.ps1
+```
+
+Stop everything but keep MongoDB data:
+
+```powershell
+.\stop.ps1
+```
+
+Stop and delete local Docker volumes:
+
+```powershell
+.\stop.ps1 -Volumes
+```
+
+## Pro Workflow
+
+1. Start Docker Desktop.
+2. Run `.\start.ps1`.
+3. Open `http://localhost:3000`.
+4. Keep a second terminal open with `docker compose logs -f`.
+5. After code changes, rebuild with `docker compose up -d --build`.
+6. Run `.\test.ps1` before showing the project or making a demo.
+7. Stop with `.\stop.ps1` when finished.
 
 ## Troubleshooting
 
-### Common Issues
+Check container status:
 
-1. **Docker not available**
-   ```
-   [ERROR] Docker is not available
-   ```
-   → Enable WSL2 integration in Docker Desktop
-
-2. **Port conflicts**
-   ```
-   [ERROR] Port 8000 is already in use
-   ```
-   → Stop conflicting services: `lsof -i :8000`
-
-3. **Model download fails**
-   ```
-   [ERROR] Failed to download Ollama model
-   ```
-   → Check internet connection and disk space
-
-### Reset Everything
-
-If something goes wrong, reset completely:
-
-```bash
-# Stop everything
-./stop.sh
-
-# Remove all containers and data
-docker-compose -f docker-compose.dependencies.yml down -v
-
-# Remove virtual environments
-rm -rf */venv frontend/node_modules
-
-# Start fresh
-./start.sh
+```powershell
+docker compose ps
 ```
 
-## Development Tips
+Read logs for one service:
 
-- **Hot reload**: All services support code changes without restart
-- **Logs**: Check individual service logs in respective directories
-- **Debug mode**: Set `DEBUG=true` environment variable
-- **Manual start**: Each service can be started individually
+```powershell
+docker compose logs --tail=120 gateway_service
+docker compose logs --tail=120 orchestrator_service
+docker compose logs --tail=120 task_service
+docker compose logs --tail=120 frontend
+```
 
-## Getting Help
+Restart one service:
 
-1. Run `./test.sh` to diagnose issues
-2. Check logs in service directories
-3. See detailed documentation: `docs/scripts-documentation.md`
-4. Create GitHub issue with test output
+```powershell
+docker compose restart gateway_service
+```
 
----
+Rebuild one service:
 
-**💡 Pro Tip**: Run `./test.sh` regularly to ensure everything is working correctly!
+```powershell
+docker compose up -d --build frontend
+```
 
-*Quick reference guide - See `docs/scripts-documentation.md` for complete documentation*
+Reset local MongoDB data:
+
+```powershell
+.\stop.ps1 -Volumes
+.\start.ps1
+```
+
+## Notes
+
+- `MZ-feature-complete.patch` is a patch/archive file, not a startup script.
+- Real secrets belong in `.env`, not in `.env.example`.
+- If `.env` is missing, `start.ps1` and `start.sh` automatically enable local MongoDB.
+- If `.env` contains `MONGO_URI=mongodb://mongodb:27017`, local MongoDB is enabled.
+- If you use Ollama Cloud, set `OLLAMA_API_KEY` in `.env`.
+- If you use local Ollama from Docker, set `OLLAMA_BASE_URL=http://host.docker.internal:11434/api/generate`.

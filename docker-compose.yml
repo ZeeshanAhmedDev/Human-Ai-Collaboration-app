@@ -1,49 +1,3 @@
-# services:
-#   gateway_service:
-#     build: ./gateway_service
-#     ports:
-#       - "8000:8000"
-#     environment:
-#       - ORCH_URL=http://orchestrator_service:8001/run
-#       - TASK_URL=http://task_service:8002/task
-#     depends_on:
-#       - orchestrator_service
-#       - task_service
-#     healthcheck:
-#       test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
-#       interval: 30s
-#       timeout: 10s
-#       retries: 3
-
-#   orchestrator_service:
-#     build: ./orchestrator_service
-#     ports:
-#       - "8001:8001"
-#     environment:
-#       - OLLAMA_HOST=http://host.docker.internal:11434
-#     extra_hosts:
-#       - "host.docker.internal:host-gateway"
-#     healthcheck:
-#       test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
-#       interval: 30s
-#       timeout: 10s
-#       retries: 3
-
-#   task_service:
-#     build: ./task_service
-#     ports:
-#       - "8002:8002"
-#     environment:
-#       - MONGO_URI=${MONGO_URI}
-#       - DB_NAME=ai_collab_team
-#     healthcheck:
-#       test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
-#       interval: 30s
-#       timeout: 10s
-#       retries: 3
-
-
-
 services:
   frontend:
     build: ./frontend
@@ -55,7 +9,8 @@ services:
       - REACT_APP_API_URL=http://localhost:8000/api
       - WDS_SOCKET_PORT=3000
     depends_on:
-      - gateway_service
+      gateway_service:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000', r => process.exit(r.statusCode < 500 ? 0 : 1)).on('error', () => process.exit(1))"]
       interval: 30s
@@ -69,11 +24,13 @@ services:
     environment:
       - ORCH_URL=http://orchestrator_service:8001/run
       - TASK_URL=http://task_service:8002/task
-      - ORCH_TIMEOUT=900
-      - TASK_TIMEOUT=20
+      - ORCH_TIMEOUT=${ORCH_TIMEOUT:-900}
+      - TASK_TIMEOUT=${TASK_TIMEOUT:-20}
     depends_on:
-      - orchestrator_service
-      - task_service
+      orchestrator_service:
+        condition: service_healthy
+      task_service:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health', timeout=5).read()"]
       interval: 30s
@@ -85,13 +42,17 @@ services:
     ports:
       - "8001:8001"
     environment:
-      - OLLAMA_API_KEY=${OLLAMA_API_KEY}
-      - OLLAMA_MODEL=${OLLAMA_MODEL}
-      - OLLAMA_TIMEOUT=180
-      - OLLAMA_NUM_PREDICT=900
+      - OLLAMA_API_KEY=${OLLAMA_API_KEY:-}
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-https://ollama.com/api/generate}
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-qwen3-coder:480b}
+      - OLLAMA_TIMEOUT=${OLLAMA_TIMEOUT:-180}
+      - OLLAMA_NUM_PREDICT=${OLLAMA_NUM_PREDICT:-900}
       - OLLAMA_COST_PER_1K_TOKENS=${OLLAMA_COST_PER_1K_TOKENS:-0}
       - TASK_BASE_URL=http://task_service:8002
-      - TASK_REQUEST_TIMEOUT=20
+      - TASK_REQUEST_TIMEOUT=${TASK_REQUEST_TIMEOUT:-20}
+    depends_on:
+      task_service:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/health', timeout=5).read()"]
       interval: 30s
@@ -103,10 +64,29 @@ services:
     ports:
       - "8002:8002"
     environment:
-      - MONGO_URI=${MONGO_URI}
-      - DB_NAME=ai_collab_team
+      - MONGO_URI=${MONGO_URI:-mongodb://mongodb:27017}
+      - DB_NAME=${DB_NAME:-ai_collab_team}
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8002/health', timeout=5).read()"]
       interval: 30s
       timeout: 10s
       retries: 3
+
+  mongodb:
+    image: mongo:7.0
+    profiles:
+      - local-db
+    ports:
+      - "${MONGODB_PORT:-27017}:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=${DB_NAME:-ai_collab_team}
+    volumes:
+      - mongodb_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  mongodb_data:
