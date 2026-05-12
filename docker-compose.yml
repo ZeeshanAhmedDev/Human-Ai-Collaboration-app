@@ -45,6 +45,23 @@
 
 
 services:
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=3000
+      - REACT_APP_API_URL=http://localhost:8000/api
+      - WDS_SOCKET_PORT=3000
+    depends_on:
+      - gateway_service
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000', r => process.exit(r.statusCode < 500 ? 0 : 1)).on('error', () => process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
   gateway_service:
     build: ./gateway_service
     ports:
